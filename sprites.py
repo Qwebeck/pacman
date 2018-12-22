@@ -10,13 +10,14 @@ class Player(pg.sprite.Sprite):
         pg.sprite.Sprite.__init__(self, self.groups)
         self.game = game
         self.shadow = pg.sprite.Group()
-        self.image = self.game.player_image
+        self.image =  pg.transform.scale(self.game.player_img, (TILESIZE, TILESIZE))
         self.rect = self.image.get_rect()
         self.keys = -1
         self.previous_key = -1
         self.vel = vec(0, 0)
         self.pos = vec(x, y) * TILESIZE
         self.index =0
+        self.rot = 0
 
     def animation(self):
         if self.index == 2:
@@ -71,6 +72,8 @@ class Player(pg.sprite.Sprite):
         return coll
 
     def update(self):
+        # self.image = pg.transform.scale(pg.transform.rotate(self.game.player_img, self.rot),(TILESIZE,TILESIZE))
+        # pg.transform.scale(self.game.player_img, (TILESIZE, TILESIZE))
         self.animation()
         self.get_keys(self.keys)
         collision = self.move()
@@ -78,6 +81,7 @@ class Player(pg.sprite.Sprite):
             self.get_keys(self.previous_key)
             sec = self.move()
         else:
+            self.image = pg.transform.scale(pg.transform.rotate(self.game.player_img, self.rot), (TILESIZE, TILESIZE))
             self.previous_key = self.keys
 
 
