@@ -12,12 +12,14 @@ class Game:
         self.clock = pg.time.Clock()
         pg.key.set_repeat(500, 100)
         self.load_data()
+        self.score = 0
+
 
 
     def load_data(self):
         self.game_folder = path.dirname(__file__)
         self.img_folder = path.join(self.game_folder, 'images')
-        self.player_img = pg.image.load(path.join(self.img_folder, PACMAN_IMAGE[1])).convert_alpha()
+        self.player_img = pg.image.load(path.join(self.img_folder, PACMAN_IMAGE[2])).convert_alpha()
 
 
         self.map_data = []
@@ -57,6 +59,7 @@ class Game:
             self.update()
             self.draw()
 
+
     def quit(self):
         pg.quit()
         sys.exit()
@@ -85,35 +88,31 @@ class Game:
             if event.type == pg.KEYDOWN:
                 if event.key == pg.K_ESCAPE:
                     self.quit()
-
-                self.image = pg.transform.scale(pg.transform.rotate(self.player_img, self.player.rot),
-                                                (TILESIZE, TILESIZE))
                 self.all_sprites.update()
                 if event.key == pg.K_LEFT:
-                    # self.player_image = pg.transform.rotate(self.player.image, 90)
-                    self.swap(0)
-                    self.player.rot = 90
+                    self.swap(0,90)
+                    # self.player.rot = 90
                 if event.key == pg.K_RIGHT:
-                    # self.player.keys = 1
-                    self.swap(1)
+                    self.swap(1,-90)
                     self.player.rot = -90
                 if event.key == pg.K_UP:
-                    # self.player.keys = 3
-                    self.swap(3)
-                    self.player.rot = 0
+                    self.swap(3,0)
+                    # self.player.rot = 0
 
                 if event.key == pg.K_DOWN:
-                    # self.player.keys = 2
-                    self.swap(2)
-                    self.player.rot = 180
+                    self.swap(2,180)
+                    # self.player.rot = 180
 
 
-    def swap(self, dir):
+    def swap(self, dir ,rot):
         if self.player.previous_key == -1 :
             self.player.keys = dir
             self.player.previous_key = dir
+            self.player.rot = rot
+            self.player.previous_rot = rot
         else:
-            self.player.keys,self.player.previous_key = dir,self.player.keys
+            self.player.rot, self.player.previous_rot = rot, self.player.rot
+            self.player.keys, self.player.previous_key = dir, self.player.keys
 
     def show_start_screen(self):
         pass

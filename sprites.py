@@ -9,8 +9,7 @@ class Player(pg.sprite.Sprite):
         self.groups = game.all_sprites
         pg.sprite.Sprite.__init__(self, self.groups)
         self.game = game
-        self.shadow = pg.sprite.Group()
-        self.image =  pg.transform.scale(self.game.player_img, (TILESIZE, TILESIZE))
+        self.image = pg.transform.scale(self.game.player_img, (TILESIZE, TILESIZE))
         self.rect = self.image.get_rect()
         self.keys = -1
         self.previous_key = -1
@@ -18,13 +17,9 @@ class Player(pg.sprite.Sprite):
         self.pos = vec(x, y) * TILESIZE
         self.index =0
         self.rot = 0
-
-    def animation(self):
-        if self.index == 2:
-            self.index = 0
-        # self.image = pg.transform.scale(pg.image.load(path.join(self.game.img_folder, PACMAN_IMAGE[self.index])),
-        #                                 (TILESIZE, TILESIZE))
-        self.index += 1
+        self.previous_rot = 0
+        self.last_update = 0
+        self.current_frame = 0
 
     def get_keys(self, key): #check for two keys
         self.vel = vec(0, 0)
@@ -60,31 +55,41 @@ class Player(pg.sprite.Sprite):
                 return True
 
     def move(self):
-        # if self.previous_key != -1:
-        #     self.keys = self.previous_key
-        # self.get_keys()
         self.pos += self.vel * self.game.dt
         self.rect.x = self.pos.x
         coll = self.collide_with_walls('x')
+        if pg.sprite.spritecollide(self, self.game.coins, True):
+            self.game.score += 1
         self.rect.y = self.pos.y
         if not coll:
             coll = self.collide_with_walls('y')
         return coll
 
     def update(self):
-        # self.image = pg.transform.scale(pg.transform.rotate(self.game.player_img, self.rot),(TILESIZE,TILESIZE))
-        # pg.transform.scale(self.game.player_img, (TILESIZE, TILESIZE))
-        self.animation()
         self.get_keys(self.keys)
         collision = self.move()
+        self.animate()
+        # print(self.rot)
         if collision:
+            self.image = pg.transform.scale(pg.transform.rotate(self.game.player_img, self.previous_rot), (TILESIZE, TILESIZE))
             self.get_keys(self.previous_key)
-            sec = self.move()
+            if self.move():#move returns true when collision
+                self.image = pg.image.load(path.join(self.game.img_folder, PACMAN_IMAGE[2])).convert_alpha()
+                self.image = pg.transform.scale(self.image,(TILESIZE,TILESIZE))
+
+
         else:
             self.image = pg.transform.scale(pg.transform.rotate(self.game.player_img, self.rot), (TILESIZE, TILESIZE))
             self.previous_key = self.keys
+            self.previous_rot = self.rot
 
 
+    def animate(self):
+        now = pg.time.get_ticks()
+        if now - self.last_update > ANIMATION_SPEED and self.keys != -1:
+            self.last_update = now
+            self.current_frame = (self.current_frame + 1 ) % 3
+            self.game.player_img = pg.image.load(path.join(self.game.img_folder, PACMAN_IMAGE[self.current_frame])).convert_alpha()
 
 class Wall(pg.sprite.Sprite):
     def __init__(self, game, x, y):
