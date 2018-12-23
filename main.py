@@ -2,7 +2,10 @@ import pygame as pg
 import sys
 from os import path
 from settings import *
+import settings
 from sprites import *
+import thorpy
+
 
 class Game:
     def __init__(self):
@@ -13,9 +16,12 @@ class Game:
         pg.key.set_repeat(500, 100)
         self.load_data()
         self.score = 0
+        self.minutes = 0
+        self.seconds = 0
         self.font_name = pg.font.match_font(FONT_NAME)
         self.running = True
-
+        #timer variable
+        self.last_update = 0
 
 
     def load_data(self):
@@ -43,6 +49,7 @@ class Game:
                 #coordinates i want map to appear
                 col += int((GRIDWIDTH-map_len)/2)
                 row += 5
+
                 if tile == '1':
                     Wall(self, col, row)
                 if tile == '.':
@@ -62,6 +69,13 @@ class Game:
         self.playing = True
         while self.playing:
             self.dt = self.clock.tick(FPS) / 1000
+            now = pg.time.get_ticks()
+            if now - self.last_update > 1000:
+                self.last_update = now
+                self.seconds += 1
+                if self.seconds >= 60:
+                    self.seconds = 0
+                    self.minutes += 1
             self.events()
             self.update()
             self.draw()
@@ -81,13 +95,29 @@ class Game:
         for y in range(0, HEIGHT, TILESIZE):
             pg.draw.line(self.screen, LIGHTGREY, (0, y), (WIDTH, y))
 
+    def drawing_of_changable(self):
+        if self.minutes < 10:
+            minutes = "0" + str(self.minutes)
+        else:
+            minutes = str(self.minutes)
+        if self.seconds < 10:
+            seconds = "0" + str(self.seconds)
+        else:
+            seconds = str(self.seconds)
+        self.draw_text("Timer ", TILESIZE, WHITE, GRIDWIDTH // 2 * TILESIZE, 3 * TILESIZE)
+        self.draw_text(minutes +":"+ seconds, TILESIZE, WHITE, (GRIDWIDTH // 2 + 3)* TILESIZE, 3 * TILESIZE)
+        self.draw_text("Score ", TILESIZE, WHITE, (GRIDWIDTH - len(self.map_data[0]))//2 * TILESIZE, 3 * TILESIZE)
+        self.draw_text(str(self.score), TILESIZE, WHITE, ((GRIDWIDTH - len(self.map_data[0]))// 2 + 5) * TILESIZE, 3 * TILESIZE)
+
+
+
     def draw(self):
         self.screen.fill(BGCOLOR)
         self.draw_grid()
         self.all_sprites.draw(self.screen)
-        self.draw_text("Score", TILESIZE, WHITE, (GRIDWIDTH - len(self.map_data[0]))//2 * TILESIZE, 3 * TILESIZE)
-        self.draw_text(str(self.score), TILESIZE, WHITE, ((GRIDWIDTH - len(self.map_data[0]))// 2 + 5) * TILESIZE, 3 * TILESIZE)
+        self.drawing_of_changable()
         pg.display.flip()
+
 
     def events(self):
         # catch all events here
@@ -129,7 +159,7 @@ class Game:
         text_rect = text_surface.get_rect()
         text_rect.topleft = (x, y)
         self.screen.blit(text_surface, text_rect)
-    
+
     def wait_for_key(self):
         waiting = True
         while waiting:
@@ -142,20 +172,46 @@ class Game:
                     waiting = False
 
     def show_start_screen(self):
-        self.screen.fill(BGCOLOR)
-        self.draw_text("Start new game",TILESIZE * 2, WHITE, (GRIDWIDTH //2  - 5)* TILESIZE,5* TILESIZE)
-        pg.display.flip()
-        self.wait_for_key()
+        pass
+        # self.wait_for_key()
 
     def show_go_screen(self):
         pass
 
+
+
 # create the game object
 g = Game()
-g.show_start_screen()
 
 while True:
 
     g.new()
     g.run()
 g.show_go_screen()
+
+
+#  self.screen.fill(BGCOLOR)
+#             application = th.Application(size=(WIDTH, HEIGHT), caption="Hello world")
+#
+#             e_title = th.make_text("Pacman", font_size=20, font_color=(0, 0, 150))
+#             e_title.center()
+#             e_title.set_topleft((None, 10))
+#             play_button = th.make_button("Play", func=th.functions.quit_menu_func)
+#
+#             varset = th.VarSet()
+#             varset.add("tilesize", value=TILESIZE, text="Size of objects:", limits=(8, 32))
+#             varset.add("speed", value=PLAYER_SPEED, text="Speed:", limits=(10, 500))
+#             varset.add("player_name", value=PLAYER_NAME, text="Player name:")
+#             e_options = th.ParamSetterLauncher.make([varset], "Options", "Options")
+#             e_background = th.Background.make(color=DARKGREY,
+#                                               elements=[e_title, play_button, e_options])
+#             th.store(e_background, [play_button, e_options])
+#             th.store(e_background)
+#
+#             menu = th.Menu(e_background)  # create a menu on top of the background
+#             menu.play()  # launch the menu
+#             pg.display.flip()
+#             MOD_TILE = varset.get_value("tilesize")
+#             MOD_NAME = varset.get_value("player_name")
+#             MOD_SPEED = varset.get_value("speed")
+#             return  MOD_TILE,MOD_SPEED,MOD_NAME
