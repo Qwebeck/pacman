@@ -35,6 +35,7 @@ class Player(pg.sprite.Sprite):
     def teleport(self):
         maplen = len(self.game.map_data[0])
         if self.pos.x > ((GRIDWIDTH - maplen -4 )//2 + maplen) * TILESIZE:
+            #uppos that  4 because of  5 i add in my init
             self.pos.x = (GRIDWIDTH - maplen)//2 * TILESIZE
         if self.pos.x < (GRIDWIDTH - maplen)//2 * TILESIZE:
             self.pos.x = ((GRIDWIDTH - maplen - 4) // 2 + maplen )* TILESIZE
@@ -71,7 +72,7 @@ class Player(pg.sprite.Sprite):
         self.rect.x = self.pos.x
         coll = self.collide_with_walls('x')
         if pg.sprite.spritecollide(self, self.game.coins, True):
-            self.game.score += 1
+            self.game.score += 100
         self.rect.y = self.pos.y
         # self.teleport()
         # try self.teleport() exeptt
