@@ -4,17 +4,18 @@ from os import path
 from settings import *
 vec = pg.math.Vector2
 
+
 class Player(pg.sprite.Sprite):
     def __init__(self, game, x, y):
         self.groups = game.all_sprites
         pg.sprite.Sprite.__init__(self, self.groups)
         self.game = game
-        self.image = pg.transform.scale(self.game.player_img, (TILESIZE, TILESIZE))
+        self.image = pg.transform.scale(self.game.player_img, (self.game.tilesize, self.game.tilesize))
         self.rect = self.image.get_rect()
         self.keys = -1
         self.previous_key = -1
         self.vel = vec(0, 0)
-        self.pos = vec(x, y) * TILESIZE
+        self.pos = vec(x, y) * self.game.tilesize
         self.index =0
         self.rot = 0
         self.previous_rot = 0
@@ -34,11 +35,11 @@ class Player(pg.sprite.Sprite):
 
     def teleport(self):
         maplen = len(self.game.map_data[0])
-        if self.pos.x > ((GRIDWIDTH - maplen -4 )//2 + maplen) * TILESIZE:
+        if self.pos.x > ((GRIDWIDTH - maplen -4 )//2 + maplen) * self.game.tilesize:
             #uppos that  4 because of  5 i add in my init
-            self.pos.x = (GRIDWIDTH - maplen)//2 * TILESIZE
-        if self.pos.x < (GRIDWIDTH - maplen)//2 * TILESIZE:
-            self.pos.x = ((GRIDWIDTH - maplen - 4) // 2 + maplen )* TILESIZE
+            self.pos.x = (GRIDWIDTH - maplen) // 2 * self.game.tilesize
+        if self.pos.x < (GRIDWIDTH - maplen)//2 * self.game.tilesize:
+            self.pos.x = ((GRIDWIDTH - maplen - 4) // 2 + maplen ) * self.game.tilesize
         # if self.vel.x > 0 and self.pos.x > self.game.teleports[self.pos.y//32 + GRIDHEIGHT] + 32 :
             # +32 because i want be on right end of the tile and just then teleport
         #     print("called")
@@ -87,16 +88,16 @@ class Player(pg.sprite.Sprite):
         self.animate()
         # print(self.rot)
         if collision:
-            self.image = pg.transform.scale(pg.transform.rotate(self.game.player_img, self.previous_rot), (TILESIZE, TILESIZE))
+            self.image = pg.transform.scale(pg.transform.rotate(self.game.player_img, self.previous_rot), (self.game.tilesize, self.game.tilesize))
             self.get_keys(self.previous_key)
             self.teleport()
             if self.move():#move returns true when collision
                 self.image = pg.image.load(path.join(self.game.img_folder, PACMAN_IMAGE[2])).convert_alpha()
-                self.image = pg.transform.scale(self.image,(TILESIZE,TILESIZE))
+                self.image = pg.transform.scale(self.image, (self.game.tilesize, self.game.tilesize))
 
 
         else:
-            self.image = pg.transform.scale(pg.transform.rotate(self.game.player_img, self.rot), (TILESIZE, TILESIZE))
+            self.image = pg.transform.scale(pg.transform.rotate(self.game.player_img, self.rot), (self.game.tilesize, self.game.tilesize))
             self.previous_key = self.keys
             self.previous_rot = self.rot
 
@@ -115,13 +116,13 @@ class Wall(pg.sprite.Sprite):
         self.groups = game.all_sprites, game.walls
         pg.sprite.Sprite.__init__(self, self.groups)
         self.game = game
-        self.image = pg.Surface((TILESIZE, TILESIZE))
+        self.image = pg.Surface((self.game.tilesize, self.game.tilesize))
         self.image.fill(GREEN)
         self.rect = self.image.get_rect()
         self.x = x
         self.y = y
-        self.rect.x = x * TILESIZE
-        self.rect.y = y * TILESIZE
+        self.rect.x = x * self.game.tilesize
+        self.rect.y = y * self.game.tilesize
 
 class Coins(pg.sprite.Sprite):
     def __init__(self, game, x, y):
@@ -130,11 +131,11 @@ class Coins(pg.sprite.Sprite):
         game_folder = path.dirname(__file__)
         img_folder = path.join(game_folder, 'images')
         self.image = pg.transform.scale(pg.image.load(path.join(img_folder, 'coin.png')),
-                                        (TILESIZE, TILESIZE))
+                                        (game.tilesize, game.tilesize))
         self.image.set_colorkey(BLACK)
         self.rect = self.image.get_rect()
         self.x = x
         self.y =y
-        self.rect.x = x * TILESIZE
-        self.rect.y = y * TILESIZE
+        self.rect.x = x * game.tilesize
+        self.rect.y = y * game.tilesize
 

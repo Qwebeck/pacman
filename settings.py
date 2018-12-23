@@ -20,6 +20,6 @@ ANIMATION_SPEED = 100
 PACMAN_IMAGE = ['pacman_top.png', 'animation_pacman_top.png', 'circle.png']
 
 
-TILESIZE = 16
-GRIDWIDTH = WIDTH / TILESIZE
-GRIDHEIGHT = HEIGHT / TILESIZE
+selftilesize = 16
+GRIDWIDTH = WIDTH / selftilesize
+GRIDHEIGHT = HEIGHT / selftilesize

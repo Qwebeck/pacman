@@ -1,15 +1,16 @@
 import pygame as pg
 import sys
 from os import path
-from settings import *
 import settings
+from settings import *
 from sprites import *
-import thorpy
+import thorpy as th
 
 
 class Game:
     def __init__(self):
         pg.init()
+        self.tilesize = selftilesize
         self.screen = pg.display.set_mode((WIDTH, HEIGHT))
         pg.display.set_caption(TITLE)
         self.clock = pg.time.Clock()
@@ -90,9 +91,9 @@ class Game:
         self.all_sprites.update()
 
     def draw_grid(self):
-        for x in range(0, WIDTH, TILESIZE):
+        for x in range(0, WIDTH, self.tilesize):
             pg.draw.line(self.screen, LIGHTGREY, (x, 0), (x, HEIGHT))
-        for y in range(0, HEIGHT, TILESIZE):
+        for y in range(0, HEIGHT, self.tilesize):
             pg.draw.line(self.screen, LIGHTGREY, (0, y), (WIDTH, y))
 
     def drawing_of_changable(self):
@@ -104,10 +105,10 @@ class Game:
             seconds = "0" + str(self.seconds)
         else:
             seconds = str(self.seconds)
-        self.draw_text("Timer ", TILESIZE, WHITE, GRIDWIDTH // 2 * TILESIZE, 3 * TILESIZE)
-        self.draw_text(minutes +":"+ seconds, TILESIZE, WHITE, (GRIDWIDTH // 2 + 3)* TILESIZE, 3 * TILESIZE)
-        self.draw_text("Score ", TILESIZE, WHITE, (GRIDWIDTH - len(self.map_data[0]))//2 * TILESIZE, 3 * TILESIZE)
-        self.draw_text(str(self.score), TILESIZE, WHITE, ((GRIDWIDTH - len(self.map_data[0]))// 2 + 5) * TILESIZE, 3 * TILESIZE)
+        self.draw_text("Timer ", self.tilesize, WHITE, GRIDWIDTH // 2 * self.tilesize, 3 * self.tilesize)
+        self.draw_text(minutes +":" + seconds, self.tilesize, WHITE, (GRIDWIDTH // 2 + 3) * self.tilesize, 3 * self.tilesize)
+        self.draw_text("Score ", self.tilesize, WHITE, (GRIDWIDTH - len(self.map_data[0])) // 2 * self.tilesize, 3 * self.tilesize)
+        self.draw_text(str(self.score), self.tilesize, WHITE, ((GRIDWIDTH - len(self.map_data[0])) // 2 + 5) * self.tilesize, 3 * self.tilesize)
 
 
 
@@ -165,6 +166,10 @@ class Game:
         while waiting:
             self.clock.tick(FPS)
             for event in pg.event.get():
+                self.menu.react(event)
+                # print(self.slider.get_value())
+                self.tilesize = int(self.slider.get_value())
+            for event in pg.event.get():
                 if event.type == pg.QUIT:
                     waiting = False
                     self.running = False
@@ -172,8 +177,23 @@ class Game:
                     waiting = False
 
     def show_start_screen(self):
-        pass
-        # self.wait_for_key()
+        self.screen.fill(BGCOLOR)
+        self.draw_text("Start new game", self.tilesize * 2, WHITE, (GRIDWIDTH // 2 - 5) * self.tilesize, 5 * selftilesize)
+        pg.display.flip()
+        self.slider = th.SliderX.make(100, (12, 35), "My Slider")
+        button = th.make_button("Quit", func=th.functions.quit_func)
+        box = th.Box.make(elements=[self.slider,button])
+        # we regroup all elements on a menu, even if we do not launch the menu
+        self.menu = th.Menu(box)
+        # important : set the screen as surface for all elements
+        for element in self.menu.get_population():
+            element.surface = self.screen
+        # use the elements normally...
+        box.set_topleft((500, 250))
+        box.blit()
+        box.update()
+        self.wait_for_key()
+
 
     def show_go_screen(self):
         pass
@@ -182,9 +202,8 @@ class Game:
 
 # create the game object
 g = Game()
-
+g.show_start_screen()
 while True:
-
     g.new()
     g.run()
 g.show_go_screen()
