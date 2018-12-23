@@ -32,11 +32,23 @@ class Player(pg.sprite.Sprite):
         elif key == 3:#up
             self.vel.y = -PLAYER_SPEED
 
+    def teleport(self):
+        maplen = len(self.game.map_data[0])
+        if self.pos.x > ((GRIDWIDTH - maplen -4 )//2 + maplen) * TILESIZE:
+            self.pos.x = (GRIDWIDTH - maplen)//2 * TILESIZE
+        if self.pos.x < (GRIDWIDTH - maplen)//2 * TILESIZE:
+            self.pos.x = ((GRIDWIDTH - maplen - 4) // 2 + maplen )* TILESIZE
+        # if self.vel.x > 0 and self.pos.x > self.game.teleports[self.pos.y//32 + GRIDHEIGHT] + 32 :
+            # +32 because i want be on right end of the tile and just then teleport
+        #     print("called")
+        #     self.pos.x = self.game.teleports[self.pos.y//32]
+        # elif self.vel.x < 0 and self.pos.x < self.game.teleports[self.pos.y]:
+        #     self.pos.x = self.game.teleports[self.pos.y//32 + GRIDHEIGHT]
+
     def collide_with_walls(self, dir):
         hits = pg.sprite.spritecollide(self, self.game.walls, False)
         if dir == 'x':
             if hits:
-
                 if self.vel.x > 0:
                     self.pos.x = hits[0].rect.left - self.rect.width
                 elif self.vel.x < 0:
@@ -61,18 +73,22 @@ class Player(pg.sprite.Sprite):
         if pg.sprite.spritecollide(self, self.game.coins, True):
             self.game.score += 1
         self.rect.y = self.pos.y
+        # self.teleport()
+        # try self.teleport() exeptt
         if not coll:
             coll = self.collide_with_walls('y')
         return coll
 
     def update(self):
         self.get_keys(self.keys)
+        self.teleport()
         collision = self.move()
         self.animate()
         # print(self.rot)
         if collision:
             self.image = pg.transform.scale(pg.transform.rotate(self.game.player_img, self.previous_rot), (TILESIZE, TILESIZE))
             self.get_keys(self.previous_key)
+            self.teleport()
             if self.move():#move returns true when collision
                 self.image = pg.image.load(path.join(self.game.img_folder, PACMAN_IMAGE[2])).convert_alpha()
                 self.image = pg.transform.scale(self.image,(TILESIZE,TILESIZE))
@@ -82,6 +98,8 @@ class Player(pg.sprite.Sprite):
             self.image = pg.transform.scale(pg.transform.rotate(self.game.player_img, self.rot), (TILESIZE, TILESIZE))
             self.previous_key = self.keys
             self.previous_rot = self.rot
+
+
 
 
     def animate(self):

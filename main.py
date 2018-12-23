@@ -20,7 +20,7 @@ class Game:
         self.game_folder = path.dirname(__file__)
         self.img_folder = path.join(self.game_folder, 'images')
         self.player_img = pg.image.load(path.join(self.img_folder, PACMAN_IMAGE[2])).convert_alpha()
-
+        self.teleports = {}
 
         self.map_data = []
         with open(path.join(self.game_folder, 'map.txt'), 'rt') as f:
@@ -34,11 +34,12 @@ class Game:
         self.walls = pg.sprite.Group()
         self.coins = pg.sprite.Group()
 
+
         map_len = len(self.map_data[0])
         for row, tiles in enumerate(self.map_data):
             for col, tile in enumerate(tiles):
+                #coordinates i want map to appear
                 col += int((GRIDWIDTH-map_len)/2)
-                # row += int(GRIDHEIGHT/2)
                 row += 5
                 if tile == '1':
                     Wall(self, col, row)
@@ -46,8 +47,12 @@ class Game:
                     Coins(self,col,row)
                 if tile == 'P':
                     self.player = Player(self, col, row)
-                if tile == 'T':
-                    Wall(self, col, row)
+                # if tile == 'T':
+                #     if tile in self.teleports:
+                #         #gridheight guarants me that there will be no repeated keys in dictionary
+                #         self.teleports[col + GRIDHEIGHT] = row
+                #     else:
+                #         self.teleports[col]=row
                 col -= int((GRIDWIDTH-map_len)/2)
                 row -= 5
     def run(self):
