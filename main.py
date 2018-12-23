@@ -1,7 +1,6 @@
 import pygame as pg
 import sys
 from os import path
-import settings
 from settings import *
 from sprites import *
 import thorpy as th
@@ -10,7 +9,11 @@ import thorpy as th
 class Game:
     def __init__(self):
         pg.init()
-        self.tilesize = selftilesize
+        self.speed=PLAYER_SPEED
+        self.tilesize = TILESIZE
+        self.GRIDWIDTH = WIDTH / self.tilesize
+        self.GRIDHEIGHT = HEIGHT / self.tilesize
+        self.ghosts = GHOSTS
         self.screen = pg.display.set_mode((WIDTH, HEIGHT))
         pg.display.set_caption(TITLE)
         self.clock = pg.time.Clock()
@@ -48,7 +51,7 @@ class Game:
         for row, tiles in enumerate(self.map_data):
             for col, tile in enumerate(tiles):
                 #coordinates i want map to appear
-                col += int((GRIDWIDTH-map_len)/2)
+                col += int((self.GRIDWIDTH-map_len)/2)
                 row += 5
 
                 if tile == '1':
@@ -63,7 +66,7 @@ class Game:
                 #         self.teleports[col + GRIDHEIGHT] = row
                 #     else:
                 #         self.teleports[col]=row
-                col -= int((GRIDWIDTH-map_len)/2)
+                col -= int((self.GRIDWIDTH-map_len)/2)
                 row -= 5
     def run(self):
         # game loop - set self.playing = False to end the game
@@ -105,10 +108,10 @@ class Game:
             seconds = "0" + str(self.seconds)
         else:
             seconds = str(self.seconds)
-        self.draw_text("Timer ", self.tilesize, WHITE, GRIDWIDTH // 2 * self.tilesize, 3 * self.tilesize)
-        self.draw_text(minutes +":" + seconds, self.tilesize, WHITE, (GRIDWIDTH // 2 + 3) * self.tilesize, 3 * self.tilesize)
-        self.draw_text("Score ", self.tilesize, WHITE, (GRIDWIDTH - len(self.map_data[0])) // 2 * self.tilesize, 3 * self.tilesize)
-        self.draw_text(str(self.score), self.tilesize, WHITE, ((GRIDWIDTH - len(self.map_data[0])) // 2 + 5) * self.tilesize, 3 * self.tilesize)
+        self.draw_text("Timer ", self.tilesize, WHITE, self.GRIDWIDTH // 2 * self.tilesize, 3 * self.tilesize)
+        self.draw_text(minutes +":" + seconds, self.tilesize, WHITE, (self.GRIDWIDTH // 2 + 3) * self.tilesize, 3 * self.tilesize)
+        self.draw_text("Score ", self.tilesize, WHITE, (self.GRIDWIDTH - len(self.map_data[0])) // 2 * self.tilesize, 3 * self.tilesize)
+        self.draw_text(str(self.score), self.tilesize, WHITE, ((self.GRIDWIDTH - len(self.map_data[0])) // 2 + 5) * self.tilesize, 3 * self.tilesize)
 
 
 
@@ -165,10 +168,10 @@ class Game:
         waiting = True
         while waiting:
             self.clock.tick(FPS)
-            for event in pg.event.get():
-                self.menu.react(event)
+            # for event in pg.event.get():
+                # self.menu.react(event)
                 # print(self.slider.get_value())
-                self.tilesize = int(self.slider.get_value())
+                # self.tilesize = int(self.slider.get_value())
             for event in pg.event.get():
                 if event.type == pg.QUIT:
                     waiting = False
@@ -177,22 +180,32 @@ class Game:
                     waiting = False
 
     def show_start_screen(self):
-        self.screen.fill(BGCOLOR)
-        self.draw_text("Start new game", self.tilesize * 2, WHITE, (GRIDWIDTH // 2 - 5) * self.tilesize, 5 * selftilesize)
+        application = th.Application(size=(WIDTH, HEIGHT), caption="Hello world")
+        e_title = th.make_text("Pacman", font_size=20, font_color=WHITE)
+        # e_title.center()
+        e_title.set_topleft((10, 10))
+        play_button = th.make_button("Play", func=th.functions.quit_menu_func)
+        varset = th.VarSet()
+        varset.add("tilesize", value=TILESIZE, text="Size of objects:", limits=(8, 32))
+        varset.add("speed", value=PLAYER_SPEED, text="Speed:", limits=(10, 500))
+        varset.add("ghosts", value=GHOSTS, text="Ghosts:", limits=(0, 20))
+        e_options = th.ParamSetterLauncher.make([varset], "Options", "Options")
+        quit_button = th.make_button("Quit",func=th.functions.quit_func)
+        elements = [e_title, play_button, e_options, quit_button]
+        e_background = th.Background.make(color=DARKGREY, elements=elements)
+        th.store(e_background, elements)
+        th.store(e_background)
+        menu = th.Menu(e_background)  # create a menu on top of the background
+        menu.play()  # launch the menu
         pg.display.flip()
-        self.slider = th.SliderX.make(100, (12, 35), "My Slider")
-        button = th.make_button("Quit", func=th.functions.quit_func)
-        box = th.Box.make(elements=[self.slider,button])
-        # we regroup all elements on a menu, even if we do not launch the menu
-        self.menu = th.Menu(box)
-        # important : set the screen as surface for all elements
-        for element in self.menu.get_population():
-            element.surface = self.screen
-        # use the elements normally...
-        box.set_topleft((500, 250))
-        box.blit()
-        box.update()
-        self.wait_for_key()
+        self.tilesize = varset.get_value("tilesize")
+        self.speed = varset.get_value("speed")
+        self.GRIDWIDTH = WIDTH / self.tilesize
+        self.GRIDHEIGHT = HEIGHT / self.tilesize
+        self.ghosts = varset.get_value("ghosts")
+
+        # pg.display.flip()
+        # self.wait_for_key()
 
 
     def show_go_screen(self):

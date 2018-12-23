@@ -4,7 +4,6 @@ from os import path
 from settings import *
 vec = pg.math.Vector2
 
-
 class Player(pg.sprite.Sprite):
     def __init__(self, game, x, y):
         self.groups = game.all_sprites
@@ -25,21 +24,21 @@ class Player(pg.sprite.Sprite):
     def get_keys(self, key): #check for two keys
         self.vel = vec(0, 0)
         if key == 0: #left
-            self.vel.x = -PLAYER_SPEED
+            self.vel.x = -self.game.speed
         elif key == 1: #right
-            self.vel.x = PLAYER_SPEED
+            self.vel.x = self.game.speed
         elif key == 2:#down
-            self.vel.y = PLAYER_SPEED
+            self.vel.y = self.game.speed
         elif key == 3:#up
-            self.vel.y = -PLAYER_SPEED
+            self.vel.y = -self.game.speed
 
     def teleport(self):
         maplen = len(self.game.map_data[0])
-        if self.pos.x > ((GRIDWIDTH - maplen -4 )//2 + maplen) * self.game.tilesize:
+        if self.pos.x > ((self.game.GRIDWIDTH - maplen -4 )//2 + maplen) * self.game.tilesize:
             #uppos that  4 because of  5 i add in my init
-            self.pos.x = (GRIDWIDTH - maplen) // 2 * self.game.tilesize
-        if self.pos.x < (GRIDWIDTH - maplen)//2 * self.game.tilesize:
-            self.pos.x = ((GRIDWIDTH - maplen - 4) // 2 + maplen ) * self.game.tilesize
+            self.pos.x = (self.game.GRIDWIDTH - maplen) // 2 * self.game.tilesize
+        if self.pos.x < (self.game.GRIDWIDTH - maplen)//2 * self.game.tilesize:
+            self.pos.x = ((self.game.GRIDWIDTH - maplen - 4) // 2 + maplen ) * self.game.tilesize
         # if self.vel.x > 0 and self.pos.x > self.game.teleports[self.pos.y//32 + GRIDHEIGHT] + 32 :
             # +32 because i want be on right end of the tile and just then teleport
         #     print("called")
