@@ -160,6 +160,8 @@ class Ghost(pg.sprite.Sprite):
         self.dir = random.choice([-1,1])
         self.speed = self.game.ghost_speed
         self.path_to_player = path
+        self.index = 0
+        self.previous_ghost_pos = (self.rect.centerx// TILESIZE,self.rect.centery//TILESIZE)
 
     
 
@@ -176,6 +178,31 @@ class Ghost(pg.sprite.Sprite):
         elif key == 3:
             self.offset = -1  # -1 - x-axes
             self.dir = 1
+    
+    def following(self):
+        if (self.rect.centerx// TILESIZE,self.rect.centery//TILESIZE) != self.previous_ghost_pos:
+            if self.index == len(self.path_to_player)-2:
+                print("on players start position")
+            else:
+                if self.path_to_player[self.index][0] == self.path_to_player[self.index+1][0]:
+                    if self.path_to_player[self.index+1][1]-self.path_to_player[self.index][1] > 0:
+                        self.offset = -1
+                        self.dir = 1
+                    else :
+                        self.offset = -1
+                        self.dir = -1    
+                else:
+                    if self.path_to_player[self.index - 1][0]-self.path_to_player[self.index][0] > 0:
+                         self.offset = 1
+                         self.dir = 1
+                    else:
+                        self.offset = 1
+                        self.offset = -1
+                    
+            self.index += 1
+            self.previous_ghost_pos = self.rect.centerx// TILESIZE,self.rect.centery//TILESIZE 
+            
+        
     
     def check_for_player(self):
         # if (self.game.player.vel.x >= self.vel.x > 0 or self.game.player.vel.x <= self.vel.x < 0 ) and self.game.player.rect.centery == self.rect.centery:
@@ -210,13 +237,14 @@ class Ghost(pg.sprite.Sprite):
         self.dir = random.choice([-1,1])
 
     def movement(self):
-        self.check_for_player()
+        # self.check_for_player()
+        self.following()
         self.direction()
         now = pg.time.get_ticks()
-        if now - self.last_update > 5000:
+        # if now - self.last_update > 5000:
         
-            self.turn()
-            self.last_update = now
+        #     self.turn()
+        #     self.last_update = now
 
         if self.game.player.keys != -1:
             self.speed = self.game.ghost_speed

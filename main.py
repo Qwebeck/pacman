@@ -4,7 +4,7 @@ from os import path
 from settings import *
 from sprites import *
 import thorpy as th
-from a_star import *
+from brs_agent import *
 
 class Game:
     def __init__(self):
@@ -39,7 +39,7 @@ class Game:
     #         else:
     #             row.append(1) 
     #     maze.append(row)
-    # return maze  player_coords
+    # return maze  player_cords
  
     
 
@@ -55,8 +55,10 @@ class Game:
             for line in f:
                 self.map_data.append(line)
         maze = []
-        self.player_coords = maze_transform(maze,self.map_data)
+        self.player_cords = maze_transform(maze,self.map_data)
         self.maze = maze
+        for row in maze:
+            print(row)
         # for row in self.maze:
             # print(row)
         
@@ -88,9 +90,9 @@ class Game:
                 if tile == 'G':
                     # print(self.maze)
                     ghost_cord = (row - 5,col - int((self.GRIDWIDTH-map_len)/2))
-                    print("Player :",self.player_coords)
+                    print("Player :",self.player_cords)
                     print("Ghost :",ghost_cord)
-                    path = a_star(self.maze[:len(self.maze)-1],ghost_cord,self.player_coords)
+                    path = breadth_search(self.maze,ghost_cord,self.player_cords)
                     
                     # for i in range (1,len(path) - 1):
                     #     if path[i][0] != path[i-1][0] and path[i][1] != path[i-1][1]:
