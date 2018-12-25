@@ -1,8 +1,33 @@
 import pygame as pg
 import sys
+import random
 from os import path
 from settings import *
 vec = pg.math.Vector2
+random.seed()
+
+
+def collide_with_walls(sprite, dir, group):
+    hits = pg.sprite.spritecollide(sprite, group, False)
+    if dir == 'x':
+        if hits:
+            if sprite.vel.x > 0:
+                sprite.pos.x = hits[0].rect.left - sprite.rect.width
+            elif sprite.vel.x < 0:
+                sprite.pos.x = hits[0].rect.right
+            sprite.vel.x = 0
+            sprite.rect.x = sprite.pos.x
+            return True
+    if dir == 'y':
+        if hits:
+            if sprite.vel.y > 0:
+                sprite.pos.y = hits[0].rect.top - sprite.rect.width
+            elif sprite.vel.y < 0:
+                sprite.pos.y = hits[0].rect.bottom
+            sprite.vel.y = 0
+            sprite.rect.y = sprite.pos.y
+            return True
+
 
 class Player(pg.sprite.Sprite):
     def __init__(self, game, x, y):
@@ -46,41 +71,49 @@ class Player(pg.sprite.Sprite):
         # elif self.vel.x < 0 and self.pos.x < self.game.teleports[self.pos.y]:
         #     self.pos.x = self.game.teleports[self.pos.y//32 + GRIDHEIGHT]
 
-    def collide_with_walls(self, dir):
-        hits = pg.sprite.spritecollide(self, self.game.walls, False)
-        if dir == 'x':
-            if hits:
-                if self.vel.x > 0:
-                    self.pos.x = hits[0].rect.left - self.rect.width
-                elif self.vel.x < 0:
-                    self.pos.x = hits[0].rect.right
-                self.vel.x = 0
-                self.rect.x = self.pos.x
-                return True
-        if dir == 'y':
-            if hits:
-                if self.vel.y > 0:
-                    self.pos.y = hits[0].rect.top - self.rect.width
-                elif self.vel.y < 0:
-                    self.pos.y = hits[0].rect.bottom
-                self.vel.y = 0
-                self.rect.y = self.pos.y
-                return True
+    # def collide_with_walls(self, dir):
+    #     hits = pg.sprite.spritecollide(self, self.game.walls, False)
+    #     if dir == 'x':
+    #         if hits:
+    #             if self.vel.x > 0:
+    #                 self.pos.x = hits[0].rect.left - self.rect.width
+    #             elif self.vel.x < 0:
+    #                 self.pos.x = hits[0].rect.right
+    #             self.vel.x = 0
+    #             self.rect.x = self.pos.x
+    #             return True
+    #     if dir == 'y':
+    #         if hits:
+    #             if self.vel.y > 0:
+    #                 self.pos.y = hits[0].rect.top - self.rect.width
+    #             elif self.vel.y < 0:
+    #                 self.pos.y = hits[0].rect.bottom
+    #             self.vel.y = 0
+    #             self.rect.y = self.pos.y
+    #             return True
+    # player_cords
+    #same 
 
     def move(self):
         self.pos += self.vel * self.game.dt
         self.rect.x = self.pos.x
-        coll = self.collide_with_walls('x')
+        coll = collide_with_walls(self,'x',self.game.walls)
         if pg.sprite.spritecollide(self, self.game.coins, True):
             self.game.score += 100
         self.rect.y = self.pos.y
         # self.teleport()
         # try self.teleport() exeptt
         if not coll:
-            coll = self.collide_with_walls('y')
+            coll = collide_with_walls(self,'y',self.game.walls)
         return coll
 
+
     def update(self):
+        #change in future
+        map_len = len(self.game.map_data[0])
+
+        self.game.player_coords = (self.rect.centerx // TILESIZE -int((self.game.GRIDWIDTH-map_len)/2),self.rect.centery // TILESIZE - 5)
+        # print("Player coordinates :",self.game.player_coords)
         self.get_keys(self.keys)
         self.teleport()
         collision = self.move()
@@ -109,6 +142,104 @@ class Player(pg.sprite.Sprite):
             self.last_update = now
             self.current_frame = (self.current_frame + 1 ) % 3
             self.game.player_img = pg.image.load(path.join(self.game.img_folder, PACMAN_IMAGE[self.current_frame])).convert_alpha()
+
+
+class Ghost(pg.sprite.Sprite):
+    def __init__(self, game, x, y,path=None):
+        self.groups = game.all_sprites, game.ghosts
+        pg.sprite.Sprite.__init__(self, self.groups)
+        self.game = game
+        self.image = pg.transform.scale(self.game.ghost_img, (self.game.tilesize, self.game.tilesize))
+        self.rect = self.image.get_rect()
+        self.pos = vec(x, y) * self.game.tilesize
+        self.vel = vec(0, 0)
+        self.rect.x = self.pos.x
+        self.rect.y = self.pos.y
+        self.last_update = 0
+        self.offset = random.choice([-1, 1])  # -1 - x-axes
+        self.dir = random.choice([-1,1])
+        self.speed = self.game.ghost_speed
+        self.path_to_player = path
+
+    
+
+    def key_converter(self,key):
+        if key == 0:
+            self.offset =  -1# -1 - x-axes
+            self.dir = -1
+        elif key == 1:
+            self.offset = -1 # -1 - x-axes
+            self.dir = 1
+        elif key == 2:
+            self.offset = -1  # -1 - x-axes
+            self.dir = 1
+        elif key == 3:
+            self.offset = -1  # -1 - x-axes
+            self.dir = 1
+    
+    def check_for_player(self):
+        # if (self.game.player.vel.x >= self.vel.x > 0 or self.game.player.vel.x <= self.vel.x < 0 ) and self.game.player.rect.centery == self.rect.centery:
+        #     print("same direction on horizontal and same offset")
+        # elif (self.game.player.vel.y >= self.vel.y > 0 or self.game.player.vel.y <= self.vel.y < 0) and self.game.player.rect.centerx == self.rect.centerx:
+        #     print("same direction no vertical and same offset ")
+        if self.game.player.rect.centery == self.rect.centery and (self.vel.x > 0 and self.game.player.rect.x - self.rect.x > 0 or  self.vel.x < 0 and self.game.player.rect.x - self.rect.x < 0) :
+            # print("same direction on horizonrtal offset ")
+            self.speed += 1
+            self.key_converter(self.game.player.keys)
+            
+        if self.game.player.rect.centerx == self.rect.centerx and (self.vel.y > 0 and self.game.player.rect.y - self.rect.y > 0 or  self.vel.y < 0 and self.game.player.rect.y - self.rect.y < 0) :
+            self.speed += 1
+            self.key_converter(self.game.player.keys)
+            # print("same direction on vertical offset ")
+
+    def direction(self):
+        self.vel = vec(0, 0)
+        if self.offset == 1:
+            if self.dir == 1:
+                self.vel.y = self.speed
+            if self.dir == -1:
+                self.vel.y = -self.speed
+        if self.offset == -1:
+            if self.dir == 1:
+                self.vel.x = self.speed
+            if self.dir == -1:
+                self.vel.x = -self.speed
+    
+    def turn(self):
+        self.offset = random.choice([-1, 1])  # -1 - x-axes
+        self.dir = random.choice([-1,1])
+
+    def movement(self):
+        self.check_for_player()
+        self.direction()
+        now = pg.time.get_ticks()
+        if now - self.last_update > 5000:
+        
+            self.turn()
+            self.last_update = now
+
+        if self.game.player.keys != -1:
+            self.speed = self.game.ghost_speed
+            self.pos += self.vel * self.game.dt
+            self.rect.x = self.pos.x
+            coll = collide_with_walls(self,'x',self.game.walls)
+            self.rect.y = self.pos.y
+            # self.teleport() print
+            # try self.teleport() exeptt
+            if not coll:
+                coll = collide_with_walls(self,'y',self.game.walls)
+            return coll
+            
+    def update(self):
+        if self.movement():
+            
+            if self.game.player_coords not in self.path_to_player:
+                self.path_to_player.append(self.game.player_coords)
+            # print("Player tile coords:",self.game.player_coords)
+            # print(self.path_to_player)
+            self.turn()
+            self.direction()
+
 
 class Wall(pg.sprite.Sprite):
     def __init__(self, game, x, y):

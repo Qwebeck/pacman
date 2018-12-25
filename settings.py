@@ -13,15 +13,20 @@ COLORS=[WHITE, BLACK, DARKGREY, LIGHTGREY, GREEN, RED, YELLOW]
 # game settings
 WIDTH = 1024   # 16 * 64 or 32 * 32 or 64 * 16
 HEIGHT = 768  # 16 * 48 or 32 * 24 or 64 * 12
-FPS = 60
+FPS = 100
 TITLE = "Tilemap Demo"
 BGCOLOR = DARKGREY
 
 #player settings
-GHOSTS = 5
 PLAYER_SPEED = 100
 ANIMATION_SPEED = 100
 PACMAN_IMAGE = ['pacman_top.png', 'animation_pacman_top.png', 'circle.png']
 
+#mob settings
+GHOSTS = 5
+GHOST_IMAGE = 'red_ghost.png'
+GHOST_SPEED = 95
 
+
+# GRID_SCALE = (int((self.GRIDWIDTH-map_len)/2),5) #0 -col 1 - row
 TILESIZE = 16

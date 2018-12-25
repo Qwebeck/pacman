@@ -4,7 +4,7 @@ from os import path
 from settings import *
 from sprites import *
 import thorpy as th
-
+from a_star import *
 
 class Game:
     def __init__(self):
@@ -26,18 +26,42 @@ class Game:
         self.running = True
         #timer variable
         self.last_update = 0
-
+        self.ghost_speed = GHOST_SPEED
+    
+    # def maze_transform(maze,map):
+    # for row, tiles in enumerate(map):
+    #     row = []
+    #     for col, tile in enumerate(tiles):
+    #         if tile == '\n':
+    #             break    
+    #         if tile=='.' or tile =='G' or tile == 'P':
+    #             row.append(0)    
+    #         else:
+    #             row.append(1) 
+    #     maze.append(row)
+    # return maze  player_coords
+ 
+    
 
     def load_data(self):
         self.game_folder = path.dirname(__file__)
         self.img_folder = path.join(self.game_folder, 'images')
         self.player_img = pg.image.load(path.join(self.img_folder, PACMAN_IMAGE[2])).convert_alpha()
+        self.ghost_img = pg.image.load(path.join(self.img_folder, GHOST_IMAGE)).convert_alpha()
         self.running = False
 
         self.map_data = []
         with open(path.join(self.game_folder, 'map.txt'), 'rt') as f:
             for line in f:
                 self.map_data.append(line)
+        maze = []
+        self.player_coords = maze_transform(maze,self.map_data)
+        self.maze = maze
+        # for row in self.maze:
+            # print(row)
+        
+       
+        
 
 
     def new(self):
@@ -45,6 +69,7 @@ class Game:
         self.all_sprites = pg.sprite.Group()
         self.walls = pg.sprite.Group()
         self.coins = pg.sprite.Group()
+        self.ghosts = pg.sprite.Group()
 
 
         map_len = len(self.map_data[0])
@@ -60,6 +85,20 @@ class Game:
                     Coins(self,col,row)
                 if tile == 'P':
                     self.player = Player(self, col, row)
+                if tile == 'G':
+                    # print(self.maze)
+                    ghost_cord = (row - 5,col - int((self.GRIDWIDTH-map_len)/2))
+                    print("Player :",self.player_coords)
+                    print("Ghost :",ghost_cord)
+                    path = a_star(self.maze[:len(self.maze)-1],ghost_cord,self.player_coords)
+                    
+                    # for i in range (1,len(path) - 1):
+                    #     if path[i][0] != path[i-1][0] and path[i][1] != path[i-1][1]:
+                    #         print("Previous : ",path[i])
+                    #         print("Current :",path[i-1])
+                    print("Path :",path)
+                    Ghost(self,col,row,path)
+
                 # if tile == 'T':
                 #     if tile in self.teleports:
                 #         #gridheight guarants me that there will be no repeated keys in dictionary
@@ -69,6 +108,7 @@ class Game:
                 col -= int((self.GRIDWIDTH-map_len)/2)
                 row -= 5
     def run(self):
+        #print
         # game loop - set self.playing = False to end the game
         self.playing = True
         while self.playing:
@@ -116,6 +156,7 @@ class Game:
 
 
     def draw(self):
+        pg.display.set_caption("{:.2f}".format(self.clock.get_fps()))
         self.screen.fill(BGCOLOR)
         self.draw_grid()
         self.all_sprites.draw(self.screen)
@@ -189,6 +230,7 @@ class Game:
         varset.add("tilesize", value=TILESIZE, text="Size of objects:", limits=(8, 32))
         varset.add("speed", value=PLAYER_SPEED, text="Speed:", limits=(10, 500))
         varset.add("ghosts", value=GHOSTS, text="Ghosts:", limits=(0, 20))
+        varset.add("ghost_speed", value=GHOST_SPEED, text="Ghosts speed:", limits=(10, 500))
         e_options = th.ParamSetterLauncher.make([varset], "Options", "Options")
         quit_button = th.make_button("Quit",func=th.functions.quit_func)
         elements = [e_title, play_button, e_options, quit_button]
@@ -203,6 +245,7 @@ class Game:
         self.GRIDWIDTH = WIDTH / self.tilesize
         self.GRIDHEIGHT = HEIGHT / self.tilesize
         self.ghosts = varset.get_value("ghosts")
+        self.ghost_speed = varset.get_value("ghost_speed")
 
         # pg.display.flip()
         # self.wait_for_key()
