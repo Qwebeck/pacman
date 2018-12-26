@@ -31,7 +31,7 @@ def collide_with_walls(sprite, dir, group):
 
 class Player(pg.sprite.Sprite):
     def __init__(self, game, x, y):
-        self.groups = game.all_sprites
+        self.groups = game.all_sprites,game.player_group
         pg.sprite.Sprite.__init__(self, self.groups)
         self.game = game
         self.image = pg.transform.scale(self.game.player_img, (self.game.tilesize, self.game.tilesize))
@@ -172,6 +172,10 @@ class Ghost(pg.sprite.Sprite):
     def following(self):
         #define following function to catch the player
         # print(self.path_to_player)
+        if len(self.path_to_player) <= 1 :
+            self.game_over()
+            return 0 
+
         map_len = len(self.game.map_data[0])
         move_y = self.path_to_player[self.index + 1][0] - self.path_to_player[self.index][0] #array path to player return indexes in reverse order - [0] - y coordinates , [1] - x self.game.tilesize
         move_x =self.path_to_player[self.index + 1][1] - self.path_to_player[self.index][1]
@@ -197,6 +201,7 @@ class Ghost(pg.sprite.Sprite):
 
         # print("Remove: ",self.path_to_player[self.index])
         self.path_to_player.pop(self.index )
+
         
         
         # self.path_to_player[index + 1][0] - self.path_to_player[index][0]
@@ -235,7 +240,13 @@ class Ghost(pg.sprite.Sprite):
             # if not coll:
             coll = collide_with_walls(self,'y',self.game.walls)
             # return coll
-            
+        
+    def game_over(self):
+        self.game.playing = False
+        self.game.life_counter -= 1 
+
+
+
     def update(self):
         map_len = len(self.game.map_data[0])
         #convert nodes with
@@ -243,8 +254,11 @@ class Ghost(pg.sprite.Sprite):
         # print("Current player tile :",self.game.player.current_tile)
         if (player_now[1],player_now[0]) not in self.path_to_player:
             # print("Player position: ", player_now )
-            print(self.path_to_player)
+            # print(self.path_to_player)
             self.path_to_player.append((player_now[1],player_now[0]))
+        
+        if pg.sprite.spritecollide(self,self.game.player_group,True):
+            self.game_over()
 
         self.movement()
         if self.key == 1 and self.rect.x + self.game.tilesize == self.turn_point[0] and self.rect.y == self.turn_point[1]:

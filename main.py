@@ -27,6 +27,7 @@ class Game:
         #timer variable
         self.last_update = 0
         self.ghost_speed = GHOST_SPEED
+        self.life_counter = 3
     
     # def maze_transform(maze,map):
     # for row, tiles in enumerate(map):
@@ -72,6 +73,7 @@ class Game:
         self.walls = pg.sprite.Group()
         self.coins = pg.sprite.Group()
         self.ghosts = pg.sprite.Group()
+        self.player_group = pg.sprite.Group()
 
 
         map_len = len(self.map_data[0])
@@ -112,6 +114,7 @@ class Game:
     def run(self):
         #print
         # game loop - set self.playing = False to end the game
+        print(self.life_counter)
         self.playing = True
         while self.playing:
             self.dt = self.clock.tick(FPS) / 1000
@@ -262,6 +265,8 @@ class Game:
 g = Game()
 g.show_start_screen()
 while True:
+    if g.life_counter == 0:
+        break
     g.new()
     g.run()
 g.show_go_screen()
