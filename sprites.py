@@ -45,6 +45,7 @@ class Player(pg.sprite.Sprite):
         self.previous_rot = 0
         self.last_update = 0
         self.current_frame = 0
+        self.current_tile = self.pos//self.game.tilesize
 
     def get_keys(self, key): #check for two keys
         self.vel = vec(0, 0)
@@ -112,7 +113,7 @@ class Player(pg.sprite.Sprite):
         #change in future
         map_len = len(self.game.map_data[0])
 
-        self.game.player_coords = (self.rect.centerx // TILESIZE -int((self.game.GRIDWIDTH-map_len)/2),self.rect.centery // TILESIZE - 5)
+        self.game.player_coords = (self.rect.centerx // self.game.tilesize -int((self.game.GRIDWIDTH-map_len)/2),self.rect.centery // self.game.tilesize - 5)
         # print("Player coordinates :",self.game.player_coords)
         self.get_keys(self.keys)
         self.teleport()
@@ -156,97 +157,74 @@ class Ghost(pg.sprite.Sprite):
         self.rect.x = self.pos.x
         self.rect.y = self.pos.y
         self.last_update = 0
-        self.offset = random.choice([-1, 1])  # -1 - x-axes
-        self.dir = random.choice([-1,1])
+        self.key = random.choice([0,1,2,3])
+        # self.offset = random.choice([-1, 1])  # -1 - x-axes
+        # self.dir = random.choice([-1,1])
         self.speed = self.game.ghost_speed
         self.path_to_player = path
         self.index = 0
-        self.previous_ghost_pos = (self.rect.centerx// TILESIZE,self.rect.centery//TILESIZE)
-
-    
-
-    def key_converter(self,key):
-        if key == 0:
-            self.offset =  -1# -1 - x-axes
-            self.dir = -1
-        elif key == 1:
-            self.offset = -1 # -1 - x-axes
-            self.dir = 1
-        elif key == 2:
-            self.offset = -1  # -1 - x-axes
-            self.dir = 1
-        elif key == 3:
-            self.offset = -1  # -1 - x-axes
-            self.dir = 1
-    
-    def following(self):
-        if (self.rect.centerx// TILESIZE,self.rect.centery//TILESIZE) != self.previous_ghost_pos:
-            if self.index == len(self.path_to_player)-2:
-                print("on players start position")
-            else:
-                if self.path_to_player[self.index][0] == self.path_to_player[self.index+1][0]:
-                    if self.path_to_player[self.index+1][1]-self.path_to_player[self.index][1] > 0:
-                        self.offset = -1
-                        self.dir = 1
-                    else :
-                        self.offset = -1
-                        self.dir = -1    
-                else:
-                    if self.path_to_player[self.index - 1][0]-self.path_to_player[self.index][0] > 0:
-                         self.offset = 1
-                         self.dir = 1
-                    else:
-                        self.offset = 1
-                        self.offset = -1
-                    
-            self.index += 1
-            self.previous_ghost_pos = self.rect.centerx// TILESIZE,self.rect.centery//TILESIZE 
-            
+        # self.previous_ghost_pos = (self.rect.centerx// self.game.tilesize,self.rect.centery//self.game.tilesize)
+        # self.turn_point = vec(0 ,0)
+        self.following()
         
-    
-    def check_for_player(self):
-        # if (self.game.player.vel.x >= self.vel.x > 0 or self.game.player.vel.x <= self.vel.x < 0 ) and self.game.player.rect.centery == self.rect.centery:
-        #     print("same direction on horizontal and same offset")
-        # elif (self.game.player.vel.y >= self.vel.y > 0 or self.game.player.vel.y <= self.vel.y < 0) and self.game.player.rect.centerx == self.rect.centerx:
-        #     print("same direction no vertical and same offset ")
-        if self.game.player.rect.centery == self.rect.centery and (self.vel.x > 0 and self.game.player.rect.x - self.rect.x > 0 or  self.vel.x < 0 and self.game.player.rect.x - self.rect.x < 0) :
-            # print("same direction on horizonrtal offset ")
-            self.speed += 1
-            self.key_converter(self.game.player.keys)
-            
-        if self.game.player.rect.centerx == self.rect.centerx and (self.vel.y > 0 and self.game.player.rect.y - self.rect.y > 0 or  self.vel.y < 0 and self.game.player.rect.y - self.rect.y < 0) :
-            self.speed += 1
-            self.key_converter(self.game.player.keys)
-            # print("same direction on vertical offset ")
+        
 
-    def direction(self):
+    def following(self):
+        #define following function to catch the player
+        # print(self.path_to_player)
+        map_len = len(self.game.map_data[0])
+        move_y = self.path_to_player[self.index + 1][0] - self.path_to_player[self.index][0] #array path to player return indexes in reverse order - [0] - y coordinates , [1] - x self.game.tilesize
+        move_x =self.path_to_player[self.index + 1][1] - self.path_to_player[self.index][1]
+        if move_y == 0:
+            if move_x > 0:#move right by x 
+                self.key = 1
+                self.turn_point = (vec(self.path_to_player[self.index + 1][1],self.path_to_player[self.index + 1][0])  + vec(int((self.game.GRIDWIDTH-map_len)/2) , 5) )  * self.game.tilesize + vec(self.game.tilesize , 0)
+            else:
+                self.key = 0
+                self.turn_point = (vec(self.path_to_player[self.index + 1][1],self.path_to_player[self.index + 1][0])  + vec(int((self.game.GRIDWIDTH-map_len)/2) , 5) )  * self.game.tilesize 
+        elif move_x == 0:
+            if move_y > 0:
+                self.key = 2
+                self.turn_point = (vec(self.path_to_player[self.index + 1][1],self.path_to_player[self.index + 1][0])  + vec(int((self.game.GRIDWIDTH-map_len)/2) , 5) )  * self.game.tilesize           
+            else:
+                self.key = 3
+                self.turn_point = (vec(self.path_to_player[self.index + 1][1],self.path_to_player[self.index + 1][0])  + vec(int((self.game.GRIDWIDTH-map_len)/2) , 5) )  * self.game.tilesize - vec(0 ,self.game.tilesize) 
+        #last vector is vector of changes 
+        # print("Node: ",(self.path_to_player[self.index + 1][1],self.path_to_player[self.index + 1][0]))
+        # print("Node on map: ",(vec(self.path_to_player[self.index + 1][1],self.path_to_player[self.index + 1][0])  + vec(int((self.game.GRIDWIDTH-map_len)/2) , 5) ) )
+        # print("Turn point center : " ,self.turn_point)
+        # self.index += 1
+
+        # print("Remove: ",self.path_to_player[self.index])
+        self.path_to_player.pop(self.index )
+        
+        
+        # self.path_to_player[index + 1][0] - self.path_to_player[index][0]
+        # self.path_to_player[index + 1][0] - self.path_to_player[index][0]
+
+
+
+    def get_keys(self, key): #check for two keys
         self.vel = vec(0, 0)
-        if self.offset == 1:
-            if self.dir == 1:
-                self.vel.y = self.speed
-            if self.dir == -1:
-                self.vel.y = -self.speed
-        if self.offset == -1:
-            if self.dir == 1:
-                self.vel.x = self.speed
-            if self.dir == -1:
-                self.vel.x = -self.speed
-    
-    def turn(self):
-        self.offset = random.choice([-1, 1])  # -1 - x-axes
-        self.dir = random.choice([-1,1])
+        if key == 0: #left
+            self.vel.x = -self.game.speed
+        elif key == 1: #right
+            self.vel.x = self.game.speed
+        elif key == 2:#down
+            self.vel.y = self.game.speed
+        elif key == 3:#up
+            self.vel.y = -self.game.speed
 
     def movement(self):
-        # self.check_for_player()
-        self.following()
-        self.direction()
+        # changing velocity
+        self.get_keys(self.key)
         now = pg.time.get_ticks()
         # if now - self.last_update > 5000:
         
         #     self.turn()
         #     self.last_update = now
-
         if self.game.player.keys != -1:
+            # self.following()
             self.speed = self.game.ghost_speed
             self.pos += self.vel * self.game.dt
             self.rect.x = self.pos.x
@@ -254,19 +232,33 @@ class Ghost(pg.sprite.Sprite):
             self.rect.y = self.pos.y
             # self.teleport() print
             # try self.teleport() exeptt
-            if not coll:
-                coll = collide_with_walls(self,'y',self.game.walls)
-            return coll
+            # if not coll:
+            coll = collide_with_walls(self,'y',self.game.walls)
+            # return coll
             
     def update(self):
-        if self.movement():
+        map_len = len(self.game.map_data[0])
+        #convert nodes with
+        player_now = vec(self.game.player.rect.center) // self.game.tilesize - vec(int((self.game.GRIDWIDTH-map_len)/2) , 5)
+        # print("Current player tile :",self.game.player.current_tile)
+        if (player_now[1],player_now[0]) not in self.path_to_player:
+            # print("Player position: ", player_now )
+            print(self.path_to_player)
+            self.path_to_player.append((player_now[1],player_now[0]))
+
+        self.movement()
+        if self.key == 1 and self.rect.x + self.game.tilesize == self.turn_point[0] and self.rect.y == self.turn_point[1]:
+            # print(vec(self.rect.center))
+            self.following()
+        elif self.key == 0 and self.rect.x == self.turn_point[0] and self.rect.y == self.turn_point[1]:
+            self.following()
+        elif self.key == 2 and self.rect.x == self.turn_point[0] and self.rect.y == self.turn_point[1]:
+            self.following()
+        elif self.key == 3 and self.rect.x == self.turn_point[0] and self.rect.y - self.game.tilesize == self.turn_point[1]:
+            self.following()
+        #    self.key = random.choice([0,1,2,3])
+           
             
-            if self.game.player_coords not in self.path_to_player:
-                self.path_to_player.append(self.game.player_coords)
-            # print("Player tile coords:",self.game.player_coords)
-            # print(self.path_to_player)
-            self.turn()
-            self.direction()
 
 
 class Wall(pg.sprite.Sprite):
