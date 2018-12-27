@@ -28,6 +28,7 @@ class Game:
         self.last_update = 0
         self.ghost_speed = GHOST_SPEED
         self.life_counter = 3
+        
     
     # def maze_transform(maze,map):
     # for row, tiles in enumerate(map):
@@ -104,6 +105,7 @@ class Game:
                     Ghost(self,col,row,path)
 
                 # if tile == 'T':
+                #GHOST_SPEED
                 #     if tile in self.teleports:
                 #         #gridheight guarants me that there will be no repeated keys in dictionary
                 #         self.teleports[col + GRIDHEIGHT] = row

@@ -3,9 +3,19 @@ import sys
 import random
 from os import path
 from settings import *
+from brs_agent import *
 vec = pg.math.Vector2
 random.seed()
 
+
+
+#TODO
+#teleportation bug
+#change AI logic 
+#add graphic
+#add bonuses 
+#add new ghost classes
+#4 other ghosts 
 
 def collide_with_walls(sprite, dir, group):
     hits = pg.sprite.spritecollide(sprite, group, False)
@@ -46,6 +56,7 @@ class Player(pg.sprite.Sprite):
         self.last_update = 0
         self.current_frame = 0
         self.current_tile = self.pos//self.game.tilesize
+        self.stay = True
 
     def get_keys(self, key): #check for two keys
         self.vel = vec(0, 0)
@@ -127,9 +138,11 @@ class Player(pg.sprite.Sprite):
             if self.move():#move returns true when collision
                 self.image = pg.image.load(path.join(self.game.img_folder, PACMAN_IMAGE[2])).convert_alpha()
                 self.image = pg.transform.scale(self.image, (self.game.tilesize, self.game.tilesize))
+                self.stay = True
 
 
         else:
+            self.stay = False
             self.image = pg.transform.scale(pg.transform.rotate(self.game.player_img, self.rot), (self.game.tilesize, self.game.tilesize))
             self.previous_key = self.keys
             self.previous_rot = self.rot
@@ -157,7 +170,8 @@ class Ghost(pg.sprite.Sprite):
         self.rect.x = self.pos.x
         self.rect.y = self.pos.y
         self.last_update = 0
-        self.key = random.choice([0,1,2,3])
+        self.previous_rect = vec(self.rect.center)#ghost previous position
+        
         # self.offset = random.choice([-1, 1])  # -1 - x-axes
         # self.dir = random.choice([-1,1])
         self.speed = self.game.ghost_speed
@@ -165,13 +179,19 @@ class Ghost(pg.sprite.Sprite):
         self.index = 0
         # self.previous_ghost_pos = (self.rect.centerx// self.game.tilesize,self.rect.centery//self.game.tilesize)
         # self.turn_point = vec(0 ,0)
-        self.following()
+        self.key = -1
+        self.previous_key = -1
+        # self.following()
+        
         
         
 
     def following(self):
         #define following function to catch the player
         # print(self.path_to_player)
+        if self.previous_key != self.key:
+            print("I change it")
+            self.previous_key = self.key
         if len(self.path_to_player) <= 1 :
             self.game_over()
             return 0 
@@ -182,17 +202,17 @@ class Ghost(pg.sprite.Sprite):
         if move_y == 0:
             if move_x > 0:#move right by x 
                 self.key = 1
-                self.turn_point = (vec(self.path_to_player[self.index + 1][1],self.path_to_player[self.index + 1][0])  + vec(int((self.game.GRIDWIDTH-map_len)/2) , 5) )  * self.game.tilesize + vec(self.game.tilesize , 0)
+                # self.turn_point = (vec(self.path_to_player[self.index + 1][1],self.path_to_player[self.index + 1][0])  + vec(int((self.game.GRIDWIDTH-map_len)/2) , 5) )  * self.game.tilesize + vec(self.game.tilesize , 0)
             else:
                 self.key = 0
-                self.turn_point = (vec(self.path_to_player[self.index + 1][1],self.path_to_player[self.index + 1][0])  + vec(int((self.game.GRIDWIDTH-map_len)/2) , 5) )  * self.game.tilesize 
+                # self.turn_point = (vec(self.path_to_player[self.index + 1][1],self.path_to_player[self.index + 1][0])  + vec(int((self.game.GRIDWIDTH-map_len)/2) , 5) )  * self.game.tilesize 
         elif move_x == 0:
             if move_y > 0:
                 self.key = 2
-                self.turn_point = (vec(self.path_to_player[self.index + 1][1],self.path_to_player[self.index + 1][0])  + vec(int((self.game.GRIDWIDTH-map_len)/2) , 5) )  * self.game.tilesize           
+                # self.turn_point = (vec(self.path_to_player[self.index + 1][1],self.path_to_player[self.index + 1][0])  + vec(int((self.game.GRIDWIDTH-map_len)/2) , 5) )  * self.game.tilesize           
             else:
                 self.key = 3
-                self.turn_point = (vec(self.path_to_player[self.index + 1][1],self.path_to_player[self.index + 1][0])  + vec(int((self.game.GRIDWIDTH-map_len)/2) , 5) )  * self.game.tilesize - vec(0 ,self.game.tilesize) 
+                # self.turn_point = (vec(self.path_to_player[self.index + 1][1],self.path_to_player[self.index + 1][0])  + vec(int((self.game.GRIDWIDTH-map_len)/2) , 5) )  * self.game.tilesize - vec(0 ,self.game.tilesize) 
         #last vector is vector of changes 
         # print("Node: ",(self.path_to_player[self.index + 1][1],self.path_to_player[self.index + 1][0]))
         # print("Node on map: ",(vec(self.path_to_player[self.index + 1][1],self.path_to_player[self.index + 1][0])  + vec(int((self.game.GRIDWIDTH-map_len)/2) , 5) ) )
@@ -200,7 +220,9 @@ class Ghost(pg.sprite.Sprite):
         # self.index += 1
 
         # print("Remove: ",self.path_to_player[self.index])
-        self.path_to_player.pop(self.index )
+        # self.path_to_player.pop(self.index )
+        # print("Path in following:",self.path_to_player)
+        print("Place to go:", vec(self.path_to_player[self.index + 1][0],self.path_to_player[self.index + 1][1]))
 
         
         
@@ -222,8 +244,8 @@ class Ghost(pg.sprite.Sprite):
 
     def movement(self):
         # changing velocity
-        self.get_keys(self.key)
-        now = pg.time.get_ticks()
+        # self.get_keys(self.key)
+        # now = pg.time.get_ticks()
         # if now - self.last_update > 5000:
         
         #     self.turn()
@@ -237,9 +259,9 @@ class Ghost(pg.sprite.Sprite):
             self.rect.y = self.pos.y
             # self.teleport() print
             # try self.teleport() exeptt
-            # if not coll:
-            coll = collide_with_walls(self,'y',self.game.walls)
-            # return coll
+            if not coll:
+                coll = collide_with_walls(self,'y',self.game.walls)
+            return coll
         
     def game_over(self):
         self.game.playing = False
@@ -250,26 +272,60 @@ class Ghost(pg.sprite.Sprite):
     def update(self):
         map_len = len(self.game.map_data[0])
         #convert nodes with
-        player_now = vec(self.game.player.rect.center) // self.game.tilesize - vec(int((self.game.GRIDWIDTH-map_len)/2) , 5)
-        # print("Current player tile :",self.game.player.current_tile)
-        if (player_now[1],player_now[0]) not in self.path_to_player:
-            # print("Player position: ", player_now )
+        self.player_now = vec(self.game.player.rect.center) // self.game.tilesize - vec(int((self.game.GRIDWIDTH-map_len)/2) , 5)
+        ghost_now = vec(self.rect.center) // self.game.tilesize - vec(int((self.game.GRIDWIDTH-map_len)/2) , 5)
+        if vec(self.player_now) != vec(-17, -5) and self.game.player.current_tile != self.player_now  :
+            self.game.player.current_tile = self.player_now
+            ghost_now = (int(ghost_now[1]),int(ghost_now[0]))
+            self.player_now = (int(self.player_now[1]),int(self.player_now[0]))
+            self.path_to_player = breadth_search(self.game.maze,ghost_now,self.player_now)
+            # self.path_to_player.pop(0)
+            self.following()
+
+        
+
+        #GHOST_SPEED
+        # if vec(self.rect.center) // self.game.tilesize - vec(int((self.game.GRIDWIDTH-map_len)/2) , 5) != self.previous_rect:
+        #     self.previous_rect = vec(self.rect.center) // self.game.tilesize - vec(int((self.game.GRIDWIDTH-map_len)/2) , 5)
+        #     print(self.previous_rect)
+            # self.following()
+
             # print(self.path_to_player)
-            self.path_to_player.append((player_now[1],player_now[0]))
+
+
+        
+        # print("Current player tile :",self.game.player.current_tile)
+        # if (self.player_now[1],self.player_now[0]) not in self.path_to_player:
+        # #     # print("Player position: ", self.player_now )
+        # #     # print(self.path_to_player)
+        #     self.path_to_player.append((self.player_now[1],self.player_now[0]))
         
         if pg.sprite.spritecollide(self,self.game.player_group,True):
             self.game_over()
+        
+        self.get_keys(self.key)
+        # print("Current key:",self.key)
+        #if self.movement returns True that mens collision , so we save our key get from following and using our previous key
+        if self.movement():
+            # print("Previous key:",self.previous_key)
+            self.get_keys(self.previous_key)
 
-        self.movement()
-        if self.key == 1 and self.rect.x + self.game.tilesize == self.turn_point[0] and self.rect.y == self.turn_point[1]:
-            # print(vec(self.rect.center))
-            self.following()
-        elif self.key == 0 and self.rect.x == self.turn_point[0] and self.rect.y == self.turn_point[1]:
-            self.following()
-        elif self.key == 2 and self.rect.x == self.turn_point[0] and self.rect.y == self.turn_point[1]:
-            self.following()
-        elif self.key == 3 and self.rect.x == self.turn_point[0] and self.rect.y - self.game.tilesize == self.turn_point[1]:
-            self.following()
+            self.movement()
+        else:
+            if self.previous_key != self.key:
+                self.previous_key = self.key
+        
+
+
+        # if self.key == 1 and self.rect.x + self.game.tilesize == self.turn_point[0] and self.rect.y == self.turn_point[1]:
+        #     # print(vec(self.rect.center))
+        #     self.following()
+        # elif self.key == 0 and self.rect.x == self.turn_point[0] and self.rect.y == self.turn_point[1]:
+        #     self.following()
+        # elif self.key == 2 and self.rect.x == self.turn_point[0] and self.rect.y == self.turn_point[1]:
+        #     self.following()
+        # elif self.key == 3 and self.rect.x == self.turn_point[0] and self.rect.y - self.game.tilesize == self.turn_point[1]:
+        #     self.following()
         #    self.key = random.choice([0,1,2,3])
            
             
