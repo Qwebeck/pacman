@@ -2,7 +2,9 @@ def maze_transform(maze,map):
     for row, tiles in enumerate(map):
         el_row = []
         for col, tile in enumerate(tiles):
-            if tile =='G':
+            if tile == '\n':
+                break
+            elif tile =='G':
                 el_row.append('G')
             #     # pass# print("Ghost :",(row,col))
             elif tile =='P':
@@ -10,9 +12,13 @@ def maze_transform(maze,map):
                 player_coordinates = (row,col)
             elif tile == ' ':
                 el_row.append(2)
+            elif tile == 'H': #ghost_house
+                el_row.append('H')
+
             #     # print("Player :",(row,col))
-            elif tile == '\n':
-                break
+           
+            elif tile == '3':
+                el_row.append(3)
             # if (el_row_index == 0 and col_index == 12) or el_row_index == 7 and col_index == 14 :
             #       el_row.append("P")    
             elif tile=='.' or tile == ' ':

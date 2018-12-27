@@ -14,7 +14,7 @@ class Game:
         self.tilesize = TILESIZE
         self.GRIDWIDTH = WIDTH / self.tilesize
         self.GRIDHEIGHT = HEIGHT / self.tilesize
-        self.ghosts = GHOSTS
+        self.ghosts = GHOSTS # ghost number on map
         self.screen = pg.display.set_mode((WIDTH, HEIGHT))
         pg.display.set_caption(TITLE)
         self.clock = pg.time.Clock()
@@ -29,6 +29,10 @@ class Game:
         self.last_update = 0
         self.ghost_speed = GHOST_SPEED
         self.life_counter = 3
+        self.game_folder = path.dirname(__file__)
+        self.img_folder = path.join(self.game_folder, 'images')
+        self.is_pellet = False
+        self.pellet_activation = 0
         
     
     # def maze_transform(maze,map):
@@ -65,37 +69,38 @@ class Game:
             # print(row)
         
 
-    def _render_region(self,image, rect, color, rad):
-        # """Helper function for round_rect."""
-        corners = rect.inflate(-2*rad, -2*rad)
-        for attribute in ("topleft", "topright", "bottomleft", "bottomright"):
-            pg.draw.circle(image, color, getattr(corners,attribute), rad)
-        image.fill(color, rect.inflate(-2*rad,0))
-        image.fill(color, rect.inflate(0,-2*rad))
+    # def _render_region(self,image, rect, color, rad):
+    #     # """Helper function for round_rect."""
+    #     corners = rect.inflate(-2*rad, -2*rad)
+    #     for attribute in ("topleft", "topright", "bottomleft", "bottomright"):
+    #         pg.draw.circle(image, color, getattr(corners,attribute), rad)
+    #     image.fill(color, rect.inflate(-2*rad,0))
+    #     image.fill(color, rect.inflate(0,-2*rad))
 
-    def round_rect(self, surface, rect, color, rad=20, border=0, inside=(0,0,0,0)):
-        # """
-        # Draw a rect with rounded corners to surface.  Argument rad can be specified
-        # to adjust curvature of edges (given in pixels).  An optional border
-        # width can also be supplied; if not provided the rect will be filled.
-        # Both the color and optional interior color (the inside argument) support
-        # alpha.
-        # """
-        rect = pg.Rect(rect)
-        zeroed_rect = rect.copy()
-        zeroed_rect.topleft = 0,0
-        image = pg.Surface(rect.size).convert_alpha()
-        image.fill((0,0,0,0))
-        self._render_region(image, zeroed_rect, color, rad)
-        if border:
-            zeroed_rect.inflate_ip(-2*border, -2*border)
-            self._render_region(image, zeroed_rect, inside, rad)
-        surface.blit(image, rect)
+    # def round_rect(self, surface, rect, color, rad=20, border=0, inside=(0,0,0,0)):
+    #     # """
+    #     # Draw a rect with rounded corners to surface.  Argument rad can be specified
+    #     # to adjust curvature of edges (given in pixels).  An optional border
+    #     # width can also be supplied; if not provided the rect will be filled.
+    #     # Both the color and optional interior color (the inside argument) support
+    #     # alpha.
+    #     # """
+    #     rect = pg.Rect(rect)
+    #     zeroed_rect = rect.copy()
+    #     zeroed_rect.topleft = 0,0
+    #     image = pg.Surface(rect.size).convert_alpha()
+    #     image.fill((0,0,0,0))
+    #     self._render_region(image, zeroed_rect, color, rad)
+    #     if border:
+    #         zeroed_rect.inflate_ip(-2*border, -2*border)
+    #         self._render_region(image, zeroed_rect, inside, rad)
+    #     surface.blit(image, rect)
        
     def draw_walls(self):
         for rect in self.walls_on_map:
-            # pg.draw.rect(self.screen,WHITE,rect,1)
-           self.round_rect(self.screen, rect, WHITE, 2, 1, BLUE)
+            pg.draw.rect(self.screen,WHITE,rect,1)
+            
+        #    self.rect(self.screen, rect, WHITE, 2, 1, BLUE)
            
 
     # initialize all variables and do all the setup for a new game
@@ -106,6 +111,7 @@ class Game:
         self.coins = pg.sprite.Group()
         self.ghosts = pg.sprite.Group()
         self.player_group = pg.sprite.Group()
+        self.pellets = pg.sprite.Group()
         for row in self.maze:
             print(row)
         self.walls_on_map = []
@@ -118,11 +124,15 @@ class Game:
                     #without params can be a beatiful space mode 
                     self.walls_on_map.append((col * self.tilesize,row * self.tilesize,self.tilesize,self.tilesize))
                     Wall(self, col, row)
-                if self.maze[y][x] == 0:
+                elif self.maze[y][x] == 0:
                     Coins(self,col,row)
-                if self.maze[y][x] == 'P':
+                elif self.maze[y][x] == 3:
+                    Pellets(self,col,row)
+                elif self.maze[y][x] == 'H':
+                    self.ghost_house = (row - 5,col - int((self.GRIDWIDTH-map_len)/2))
+                elif self.maze[y][x] == 'P':
                     self.player = Player(self, col, row)
-                if self.maze[y][x] == 'G':
+                elif self.maze[y][x] == 'G':
                     # print(self.maze)
                     ghost_cord = (row - 5,col - int((self.GRIDWIDTH-map_len)/2))
                     print("Player :",self.player_cords)
@@ -190,6 +200,8 @@ class Game:
                 if self.seconds >= 60:
                     self.seconds = 0
                     self.minutes += 1
+            if now - self.pellet_activation > 2000 and  self.is_pellet == True:
+                self.is_pellet = False
             self.events()
             self.update()
             self.draw()
