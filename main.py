@@ -60,50 +60,113 @@ class Game:
         maze = []
         self.player_cords = maze_transform(maze,self.map_data)
         self.maze = maze
-        for row in maze:
-            print(row)
+       
         # for row in self.maze:
             # print(row)
         
+
+    def _render_region(self,image, rect, color, rad):
+        # """Helper function for round_rect."""
+        corners = rect.inflate(-2*rad, -2*rad)
+        for attribute in ("topleft", "topright", "bottomleft", "bottomright"):
+            pg.draw.circle(image, color, getattr(corners,attribute), rad)
+        image.fill(color, rect.inflate(-2*rad,0))
+        image.fill(color, rect.inflate(0,-2*rad))
+
+    def round_rect(self, surface, rect, color, rad=20, border=0, inside=(0,0,0,0)):
+        # """
+        # Draw a rect with rounded corners to surface.  Argument rad can be specified
+        # to adjust curvature of edges (given in pixels).  An optional border
+        # width can also be supplied; if not provided the rect will be filled.
+        # Both the color and optional interior color (the inside argument) support
+        # alpha.
+        # """
+        rect = pg.Rect(rect)
+        zeroed_rect = rect.copy()
+        zeroed_rect.topleft = 0,0
+        image = pg.Surface(rect.size).convert_alpha()
+        image.fill((0,0,0,0))
+        self._render_region(image, zeroed_rect, color, rad)
+        if border:
+            zeroed_rect.inflate_ip(-2*border, -2*border)
+            self._render_region(image, zeroed_rect, inside, rad)
+        surface.blit(image, rect)
        
-        
+    def draw_walls(self):
+        for rect in self.walls_on_map:
+            # pg.draw.rect(self.screen,WHITE,rect,1)
+           self.round_rect(self.screen, rect, WHITE, 2, 1, BLUE)
+           
 
-
+    # initialize all variables and do all the setup for a new game
     def new(self):
-        # initialize all variables and do all the setup for a new game
+        
         self.all_sprites = pg.sprite.Group()
         self.walls = pg.sprite.Group()
         self.coins = pg.sprite.Group()
         self.ghosts = pg.sprite.Group()
         self.player_group = pg.sprite.Group()
-
-
+        for row in self.maze:
+            print(row)
+        self.walls_on_map = []
         map_len = len(self.map_data[0])
-        for row, tiles in enumerate(self.map_data):
-            for col, tile in enumerate(tiles):
-                #coordinates i want map to appear
-                col += int((self.GRIDWIDTH-map_len)/2)
-                row += 5
-
-                if tile == '1':
+        for y in range(len(self.maze)):
+            for x in range (len(self.maze[0])):
+                col = x + int((self.GRIDWIDTH-map_len)/2)
+                row = y + 5
+                if self.maze[y][x] == 1:
+                    #without params can be a beatiful space mode 
+                    self.walls_on_map.append((col * self.tilesize,row * self.tilesize,self.tilesize,self.tilesize))
                     Wall(self, col, row)
-                if tile == '.':
+                if self.maze[y][x] == 0:
                     Coins(self,col,row)
-                if tile == 'P':
+                if self.maze[y][x] == 'P':
                     self.player = Player(self, col, row)
-                if tile == 'G':
+                if self.maze[y][x] == 'G':
                     # print(self.maze)
                     ghost_cord = (row - 5,col - int((self.GRIDWIDTH-map_len)/2))
                     print("Player :",self.player_cords)
                     print("Ghost :",ghost_cord)
                     path = breadth_search(self.maze,ghost_cord,self.player_cords)
                     
+                    for i in range (1,len(path) - 1):
+                        if path[i][0] != path[i-1][0] and path[i][1] != path[i-1][1]:
+                            print("Previous : ",path[i])
+                            print("Current :",path[i-1])
+                    print("Path :",path)
+                    Ghost(self,col,row,path)
+
+
+
+
+                # x -= int((self.GRIDWIDTH-map_len)/2)
+                # y -= 5
+
+        # for row, tiles in enumerate(self.map_data):
+        #     for col, tile in enumerate(tiles):
+        #         #coordinates i want map to appear
+        #         col += int((self.GRIDWIDTH-map_len)/2)
+        #         row += 5
+
+        #         if tile == '1':
+        #             Wall(self, col, row)
+        #         if tile == '.':
+        #             Coins(self,col,row)
+        #         if tile == 'P':
+        #             self.player = Player(self, col, row)
+        #         if tile == 'G':
+        #             # print(self.maze)
+        #             ghost_cord = (row - 5,col - int((self.GRIDWIDTH-map_len)/2))
+        #             print("Player :",self.player_cords)
+        #             print("Ghost :",ghost_cord)
+        #             path = breadth_search(self.maze,ghost_cord,self.player_cords)
+                    
                     # for i in range (1,len(path) - 1):
                     #     if path[i][0] != path[i-1][0] and path[i][1] != path[i-1][1]:
                     #         print("Previous : ",path[i])
                     #         print("Current :",path[i-1])
-                    print("Path :",path)
-                    Ghost(self,col,row,path)
+                    # print("Path :",path)
+                    # Ghost(self,col,row,path)
 
                 # if tile == 'T':
                 #GHOST_SPEED
@@ -112,8 +175,7 @@ class Game:
                 #         self.teleports[col + GRIDHEIGHT] = row
                 #     else:
                 #         self.teleports[col]=row
-                col -= int((self.GRIDWIDTH-map_len)/2)
-                row -= 5
+             
     def run(self):
         #print
         # game loop - set self.playing = False to end the game
@@ -140,6 +202,7 @@ class Game:
     def update(self):
         # update portion of the game loop
         self.all_sprites.update()
+        # self.draw_walls()
 
     def draw_grid(self):
         for x in range(0, WIDTH, self.tilesize):
@@ -169,6 +232,7 @@ class Game:
         self.draw_grid()
         self.all_sprites.draw(self.screen)
         self.drawing_of_changable()
+        self.draw_walls()
         pg.display.flip()
 
 

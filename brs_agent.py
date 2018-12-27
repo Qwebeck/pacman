@@ -3,15 +3,19 @@ def maze_transform(maze,map):
         el_row = []
         for col, tile in enumerate(tiles):
             if tile =='G':
-                pass# print("Ghost :",(row,col))
-            if tile =='P':
+                el_row.append('G')
+            #     # pass# print("Ghost :",(row,col))
+            elif tile =='P':
+                el_row.append('P')
                 player_coordinates = (row,col)
-                # print("Player :",(row,col))
-            if tile == '\n':
+            elif tile == ' ':
+                el_row.append(2)
+            #     # print("Player :",(row,col))
+            elif tile == '\n':
                 break
             # if (el_row_index == 0 and col_index == 12) or el_row_index == 7 and col_index == 14 :
             #       el_row.append("P")    
-            if tile=='.' or tile =='G' or tile == 'P':
+            elif tile=='.' or tile == ' ':
                 el_row.append(0)    
             else:
                 el_row.append(1)
@@ -23,6 +27,8 @@ def maze_transform(maze,map):
 
 
 def breadth_search(maze,start,end):
+
+    
     frontier = [start]
     visited = {start:None}
     while frontier:
