@@ -5,6 +5,7 @@ from settings import *
 from sprites import *
 import thorpy as th
 from brs_agent import *
+import pytmx
 
 class Game:
     def __init__(self):
