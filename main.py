@@ -200,7 +200,7 @@ class Game:
                 if self.seconds >= 60:
                     self.seconds = 0
                     self.minutes += 1
-            if now - self.pellet_activation > 2000 and  self.is_pellet == True:
+            if now - self.pellet_activation > 4000 and  self.is_pellet == True:
                 self.is_pellet = False
             self.events()
             self.update()

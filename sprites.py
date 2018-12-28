@@ -197,8 +197,10 @@ class Ghost(pg.sprite.Sprite):
         if self.previous_key != self.key:
             print("I change it")
             self.previous_key = self.key
-        if len(self.path) <= 1 :
+        if len(self.path) <= 1 and self.game.is_pellet == False:
             self.game_over()
+            return 0
+        elif self.game.is_pellet == True and len(self.path) <= 1:
             return 0 
 
         map_len = len(self.game.map_data[0])
@@ -279,9 +281,12 @@ class Ghost(pg.sprite.Sprite):
         #convert nodes with
         self.player_now = vec(self.game.player.rect.center) // self.game.tilesize - vec(int((self.game.GRIDWIDTH-map_len)/2) , 5)
         ghost_now = vec(self.rect.center) // self.game.tilesize - vec(int((self.game.GRIDWIDTH-map_len)/2) , 5)
-  
-        if vec(self.player_now) != vec(-17, -5) and self.game.player.current_tile != self.player_now :
-            self.game.player.current_tile = self.player_now
+        
+        # if vec(self.player_now) != vec(-17, -5) and self.game.player.current_tile != self.player_now :
+        now = pg.time.get_ticks()
+        if now - self.last_update > 100 and vec(self.player_now) != vec(-17, -5):
+            self.last_update = now
+            # self.game.player.current_tile = self.player_now
             ghost_now = (int(ghost_now[1]),int(ghost_now[0]))
             self.player_now = (int(self.player_now[1]),int(self.player_now[0]))
 
@@ -290,10 +295,10 @@ class Ghost(pg.sprite.Sprite):
                 self.image = pg.transform.scale(self.game.ghost_img, (self.game.tilesize, self.game.tilesize))
                 self.path = breadth_search(self.game.maze,ghost_now,self.player_now)
             elif self.game.is_pellet == True:
-                print("power-up")
                 self.game.ghost_img = pg.image.load(path.join(self.game.img_folder, 'blue_ghost.png')).convert_alpha()
                 self.image = pg.transform.scale(self.game.ghost_img, (self.game.tilesize, self.game.tilesize))
                 self.path = breadth_search(self.game.maze,ghost_now,self.game.ghost_house)
+                print("Power-up path:",self.path)
             # self.path.pop(0)
             self.following()
 
