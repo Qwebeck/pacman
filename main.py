@@ -29,10 +29,11 @@ class Game:
         self.last_update = 0
         self.ghost_speed = GHOST_SPEED
         self.life_counter = 3
-        self.game_folder = path.dirname(__file__)
-        self.img_folder = path.join(self.game_folder, 'images')
+        # self.game_folder = path.dirname(__file__)
+        # self.img_folder = path.join(self.game_folder, 'images')
         self.is_pellet = False
         self.pellet_activation = 0
+      
         
     
     # def maze_transform(maze,map):
@@ -53,8 +54,12 @@ class Game:
     def load_data(self):
         self.game_folder = path.dirname(__file__)
         self.img_folder = path.join(self.game_folder, 'images')
+        print("Image folder in main:",self.img_folder)
         self.player_img = pg.image.load(path.join(self.img_folder, PACMAN_IMAGE[2])).convert_alpha()
-        self.ghost_img = pg.image.load(path.join(self.img_folder, GHOST_IMAGE)).convert_alpha()
+        self.blinky_img = pg.image.load(path.join(self.img_folder, BLINKY)).convert_alpha()
+        self.pinky_img = pg.image.load(path.join(self.img_folder, PINKY)).convert_alpha()
+        self.inky_img = pg.image.load(path.join(self.img_folder, INKY)).convert_alpha()
+        self.clyde_img = pg.image.load(path.join(self.img_folder, CLYDE)).convert_alpha()
         self.running = False
 
         self.map_data = []
@@ -105,7 +110,8 @@ class Game:
 
     # initialize all variables and do all the setup for a new game
     def new(self):
-        
+        self.seconds = 0
+        self.minutes = 0
         self.all_sprites = pg.sprite.Group()
         self.walls = pg.sprite.Group()
         self.coins = pg.sprite.Group()
@@ -138,13 +144,22 @@ class Game:
                     print("Player :",self.player_cords)
                     print("Ghost :",ghost_cord)
                     path = breadth_search(self.maze,ghost_cord,self.player_cords)
-                    
-                    for i in range (1,len(path) - 1):
-                        if path[i][0] != path[i-1][0] and path[i][1] != path[i-1][1]:
-                            print("Previous : ",path[i])
-                            print("Current :",path[i-1])
-                    print("Path :",path)
-                    Ghost(self,col,row,path)
+                    Blinky(self,col,row,path)
+                elif self.maze[y][x] == 'p':
+                    # print(self.maze)
+                    ghost_cord = (row - 5,col - int((self.GRIDWIDTH-map_len)/2))
+                    path = breadth_search(self.maze,ghost_cord, (ghost_cord[0],ghost_cord[1]+1))
+                    Pinky(self,col,row,path)
+                elif self.maze[y][x] == 'i':
+                    # print(self.maze)
+                    ghost_cord = (row - 5,col - int((self.GRIDWIDTH-map_len)/2))
+                    path = breadth_search(self.maze,ghost_cord, (ghost_cord[0],ghost_cord[1]+1))
+                    Inky(self,col,row,path)
+                elif self.maze[y][x] == 'c':
+                    # print(self.maze)
+                    ghost_cord = (row - 5,col - int((self.GRIDWIDTH-map_len)/2))
+                    path = breadth_search(self.maze,ghost_cord, (ghost_cord[0],ghost_cord[1]-1))
+                    Clyde(self,col,row,path)
 
 
 

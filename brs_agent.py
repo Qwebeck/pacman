@@ -7,6 +7,15 @@ def maze_transform(maze,map):
             elif tile =='G':
                 el_row.append('G')
             #     # pass# print("Ghost :",(row,col))
+            elif tile =='p':
+                #pinky
+                el_row.append('p')
+            elif tile =='i':
+                #inky
+                el_row.append('i')
+            elif tile =='c':
+                #clyde
+                el_row.append('c')
             elif tile =='P':
                 el_row.append('P')
                 player_coordinates = (row,col)

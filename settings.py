@@ -26,7 +26,11 @@ PACMAN_IMAGE = ['pacman_top.png', 'animation_pacman_top.png', 'circle.png']
 #mob settings
 GHOSTS = 5
 GHOST_IMAGE = 'red_ghost.png'
-GHOST_SPEED = 95
+BLINKY = 'red_ghost.png'
+PINKY='pinky.png'
+INKY='inky.png'
+CLYDE='clyde.png'
+GHOST_SPEED = 100
 
 
 # GRID_SCALE = (int((self.GRIDWIDTH-map_len)/2),5) #0 -col 1 - row
