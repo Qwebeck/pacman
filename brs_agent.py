@@ -82,6 +82,8 @@ def breadth_search(maze,start,end):
     current = end
     path = []
     while current != None:
+        if current == (-5, -17):
+            return 0
         path.append(current)
         current = visited[current]
     return path[::-1]

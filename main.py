@@ -34,6 +34,7 @@ class Game:
         # self.img_folder = path.join(self.game_folder, 'images')
         self.is_pellet = False
         self.pellet_activation = 0
+        self.p_ch_index = 0
         self.scatter_mode = False
 
 
@@ -128,8 +129,8 @@ class Game:
                 x = ((self.GRIDWIDTH - len(self.map_data[0])) // 2 + 5 + life + 0.10*life)  
                 y = ((self.GRIDHEIGHT - len(self.map_data) + 4)) 
                 Lifes(self,x,y)
-        # for row in self.maze:
-            # print(row)
+        for row in self.maze:
+            print(row)
         self.walls_on_map = []
         map_len = len(self.map_data[0])
         for y in range(len(self.maze)):
@@ -162,14 +163,6 @@ class Game:
                     Wall(self, col, row,WALLS[3])
                 elif self.maze[y][x] == 'B':
                     Wall(self, col, row,WALLS[5])
-                
-                
-                
-                
-                
-                
-                
-                
                 elif self.maze[y][x] == 'G':
                     # print(self.maze)
                     ghost_cord = (row - 5,col - int((self.GRIDWIDTH-map_len)/2))
@@ -177,21 +170,21 @@ class Game:
                     # print("Ghost :",ghost_cord)
                     path = breadth_search(self.maze,ghost_cord,self.player_cords)
                     Blinky(self,col,row,path)
-                elif self.maze[y][x] == 'p':
-                    # print(self.maze)
-                    ghost_cord = (row - 5,col - int((self.GRIDWIDTH-map_len)/2))
-                    path = breadth_search(self.maze,ghost_cord, (ghost_cord[0],ghost_cord[1]+1))
-                    Pinky(self,col,row,path)
-                elif self.maze[y][x] == 'i':
-                    # print(self.maze)
-                    ghost_cord = (row - 5,col - int((self.GRIDWIDTH-map_len)/2))
-                    path = breadth_search(self.maze,ghost_cord, (ghost_cord[0],ghost_cord[1]+1))
-                    Inky(self,col,row,path)
-                elif self.maze[y][x] == 'c':
-                    # print(self.maze)
-                    ghost_cord = (row - 5,col - int((self.GRIDWIDTH-map_len)/2))
-                    path = breadth_search(self.maze,ghost_cord, (ghost_cord[0],ghost_cord[1]-1))
-                    Clyde(self,col,row,path)
+                # elif self.maze[y][x] == 'p':
+                #     # print(self.maze)
+                #     ghost_cord = (row - 5,col - int((self.GRIDWIDTH-map_len)/2))
+                #     path = breadth_search(self.maze,ghost_cord, (ghost_cord[0],ghost_cord[1]+1))
+                #     Pinky(self,col,row,path)
+                # elif self.maze[y][x] == 'i':
+                #     # print(self.maze)
+                #     ghost_cord = (row - 5,col - int((self.GRIDWIDTH-map_len)/2))
+                #     path = breadth_search(self.maze,ghost_cord, (ghost_cord[0],ghost_cord[1]+1))
+                #     Inky(self,col,row,path)
+                # elif self.maze[y][x] == 'c':
+                #     # print(self.maze)
+                #     ghost_cord = (row - 5,col - int((self.GRIDWIDTH-map_len)/2))
+                #     path = breadth_search(self.maze,ghost_cord, (ghost_cord[0],ghost_cord[1]-1))
+                #     Clyde(self,col,row,path)
                 
 
 
@@ -249,10 +242,12 @@ class Game:
                 if self.seconds >= 60:
                     self.seconds = 0
                     self.minutes += 1
-            # if self.session_time % 5 == 0 :
-            #     self.scatter_mode = not self.scatter_mode
+            # if self.session_time % 5 == 0 and self.pellet_activation == False :
+                # self.scatter_mode = not self.scatter_mode
+                
             if now - self.pellet_activation > 4000 and  self.is_pellet == True:
                 self.is_pellet = False
+                self.p_ch_index = 0
             
            
             self.events()
@@ -297,7 +292,7 @@ class Game:
     def draw(self):
         pg.display.set_caption("{:.2f}".format(self.clock.get_fps()))
         self.screen.fill(BGCOLOR)
-        self.draw_grid()
+        # self.draw_grid()
         self.all_sprites.draw(self.screen)
         self.drawing_of_changable()
         pg.display.flip()
@@ -336,6 +331,7 @@ class Game:
         else:
             self.player.rot, self.player.previous_rot = rot, self.player.rot
             self.player.keys, self.player.previous_key = dir, self.player.keys
+            
 
     def draw_text(self, text, size, color, x, y):
         font = pg.font.Font(self.font_name, size)

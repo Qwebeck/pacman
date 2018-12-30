@@ -14,12 +14,15 @@ FONT_NAME = "arial"
 # game settings
 WIDTH = 1024   # 16 * 64 or 32 * 32 or 64 * 16
 HEIGHT = 768  # 16 * 48 or 32 * 24 or 64 * 12
-FPS = 100
+FPS = 60
 TITLE = "Tilemap Demo"
 BGCOLOR = DARKGREY
+#should grow with growth of pixels per second 
+IGNORE_SPACE = 4
+
 
 #player settings
-PLAYER_SPEED = 100
+PLAYER_SPEED = 90
 ANIMATION_SPEED = 100
 PACMAN_IMAGE = ['pacman_top.png', 'animation_pacman_top.png', 'circle.png']
 
@@ -30,7 +33,7 @@ BLINKY = 'red_ghost.png'
 PINKY='pinky.png'
 INKY='inky.png'
 CLYDE='clyde.png'
-GHOST_SPEED = 100
+GHOST_SPEED = 80
 
 
 # GRID_SCALE = (int((self.GRIDWIDTH-map_len)/2),5) #0 -col 1 - row
