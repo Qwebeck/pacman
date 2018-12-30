@@ -28,6 +28,7 @@ class Game:
         self.running = True
         #timer variable
         self.last_update = 0
+        self.last_scatter_update = 0
         self.ghost_speed = GHOST_SPEED
         self.life_counter = 3
         # self.game_folder = path.dirname(__file__)
@@ -35,13 +36,13 @@ class Game:
         self.is_pellet = False
         self.pellet_activation = 0
         self.p_ch_index = 0
-        self.scatter_mode = False
+        self.scatter_mode = True
 
 
         
       
         
-    
+    #self.FPS
     # def maze_transform(maze,map):
     # for row, tiles in enumerate(map):
     #     row = []
@@ -67,7 +68,7 @@ class Game:
         self.inky_img = pg.image.load(path.join(self.img_folder, INKY)).convert_alpha()
         self.clyde_img = pg.image.load(path.join(self.img_folder, CLYDE)).convert_alpha()
         self.running = False
-
+        self.FPS = FPS
         self.map_data = []
         with open(path.join(self.game_folder, 'map.txt'), 'rt') as f:
             for line in f:
@@ -125,6 +126,8 @@ class Game:
         self.player_group = pg.sprite.Group()
         self.pellets = pg.sprite.Group()
         self.data_for_inky = 0
+        self.score = 0
+        self.scatter_mode = True
         for life in range(self.life_counter):
                 x = ((self.GRIDWIDTH - len(self.map_data[0])) // 2 + 5 + life + 0.10*life)  
                 y = ((self.GRIDHEIGHT - len(self.map_data) + 4)) 
@@ -170,21 +173,21 @@ class Game:
                     # print("Ghost :",ghost_cord)
                     path = breadth_search(self.maze,ghost_cord,self.player_cords)
                     Blinky(self,col,row,path)
-                # elif self.maze[y][x] == 'p':
-                #     # print(self.maze)
-                #     ghost_cord = (row - 5,col - int((self.GRIDWIDTH-map_len)/2))
-                #     path = breadth_search(self.maze,ghost_cord, (ghost_cord[0],ghost_cord[1]+1))
-                #     Pinky(self,col,row,path)
-                # elif self.maze[y][x] == 'i':
-                #     # print(self.maze)
-                #     ghost_cord = (row - 5,col - int((self.GRIDWIDTH-map_len)/2))
-                #     path = breadth_search(self.maze,ghost_cord, (ghost_cord[0],ghost_cord[1]+1))
-                #     Inky(self,col,row,path)
-                # elif self.maze[y][x] == 'c':
-                #     # print(self.maze)
-                #     ghost_cord = (row - 5,col - int((self.GRIDWIDTH-map_len)/2))
-                #     path = breadth_search(self.maze,ghost_cord, (ghost_cord[0],ghost_cord[1]-1))
-                #     Clyde(self,col,row,path)
+                elif self.maze[y][x] == 'p':
+                    # print(self.maze)
+                    ghost_cord = (row - 5,col - int((self.GRIDWIDTH-map_len)/2))
+                    path = breadth_search(self.maze,ghost_cord,(1,1))
+                    Pinky(self,col,row,path)
+                elif self.maze[y][x] == 'i':
+                    # print(self.maze)
+                    ghost_cord = (row - 5,col - int((self.GRIDWIDTH-map_len)/2))
+                    path = breadth_search(self.maze,ghost_cord ,(len(self.maze) - 2, 1))
+                    Inky(self,col,row,path)
+                elif self.maze[y][x] == 'c':
+                    # print(self.maze)
+                    ghost_cord = (row - 5,col - int((self.GRIDWIDTH-map_len)/2))
+                    path = breadth_search(self.maze,ghost_cord, (ghost_cord[0],ghost_cord[1]-1))
+                    Clyde(self,col,row,path)
                 
 
 
@@ -233,17 +236,24 @@ class Game:
         # print(self.life_counter)
         self.playing = True
         while self.playing:
-            self.dt = self.clock.tick(FPS) / 1000
+            self.dt = self.clock.tick(self.FPS) / 1000
             now = pg.time.get_ticks()
             if now - self.last_update > 1000:
                 self.last_update = now
                 self.seconds += 1
-                self.session_time += 1
+                if self.player.keys != -1:
+                    self.session_time += 1
                 if self.seconds >= 60:
                     self.seconds = 0
                     self.minutes += 1
-            # if self.session_time % 5 == 0 and self.pellet_activation == False :
-                # self.scatter_mode = not self.scatter_mode
+            
+            if  now - self.last_scatter_update > 10000 :
+                print("Scatter mode state before update:", self.scatter_mode)
+                self.last_scatter_update = now
+                self.scatter_mode = not self.scatter_mode
+                print("Scatter mode activation")
+                print("Scatter mode state:", self.scatter_mode)
+            
                 
             if now - self.pellet_activation > 4000 and  self.is_pellet == True:
                 self.is_pellet = False
@@ -261,7 +271,14 @@ class Game:
 
     def update(self):
         # update portion of the game loop
-        self.all_sprites.update()
+        # self.all_sprites.update()
+       
+        self.coins.update()
+        self.pellets.update()
+        self.walls.update()
+        self.ghosts.update()
+        self.player_group.update()
+        
         # self.draw_walls()
 
     def draw_grid(self):
@@ -290,7 +307,8 @@ class Game:
 
 
     def draw(self):
-        pg.display.set_caption("{:.2f}".format(self.clock.get_fps()))
+        # pg.display.set_caption("{:.2f}".format(self.clock.get_fps()))
+        pg.display.set_caption("{:.2f}".format(self.session_time))
         self.screen.fill(BGCOLOR)
         # self.draw_grid()
         self.all_sprites.draw(self.screen)
@@ -343,7 +361,7 @@ class Game:
     def wait_for_key(self):
         waiting = True
         while waiting:
-            self.clock.tick(FPS)
+            self.clock.tick(self.FPS)
             # for event in pg.event.get():
                 # self.menu.react(event)
                 # print(self.slider.get_value())
@@ -381,6 +399,8 @@ class Game:
         self.GRIDHEIGHT = HEIGHT / self.tilesize
         self.ghosts = varset.get_value("ghosts")
         self.ghost_speed = varset.get_value("ghost_speed")
+        if self.speed != PLAYER_SPEED:
+            self.FPS = 100
 
         # pg.display.flip()
         # self.wait_for_key()
@@ -393,7 +413,7 @@ class Game:
 
 # create the game object
 g = Game()
-g.show_start_screen()
+# g.show_start_screen()
 while True:
     if g.life_counter == -1:
         break

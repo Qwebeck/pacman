@@ -30,18 +30,20 @@ def clyde_beh(g_pos,p_pos):
         return 1
 
 def dist(g_pos,p_pos):
-    return int(sqrt((g_pos[0] - p_pos[0])**2 + (p_pos[1] - g_pos[1])**2))%4
+    return int(sqrt((g_pos[0] - p_pos[0])**2 + (p_pos[1] - g_pos[1])**2)) 
 
 def inky_beh(maze,position,dir,data_for_inky):
     new_position = pinky_beh(maze,position,dir)
     print("Data for inky",data_for_inky)
-    print("New position [1]:",new_position)
+    print("New position :",new_position)
+    wall_arr=['C','V','N','B','F','J','M']
     new_inky_position = None
-    # while new_inky_position is None:
-    #     new_node_r = new_position[1] - data_for_inky    
-    #     if len(maze)>new_node_r>= 0 and maze[new_position[0]][new_node_r] != 1 and maze[new_position[0]][new_node_r] != 'O': 
-    #             new_inky_position = new_position[0],new_node_r
-    #     data_for_inky += 1
-        # print("New inky position:",new_inky_position)
+    while new_inky_position is None:
+        new_node_r = new_position[1] - data_for_inky % (len(maze)-1)
+           
+        if len(maze)>new_node_r>= 0 and maze[new_position[0]][new_node_r] != 1 and maze[new_position[0]][new_node_r] != 'O' and maze[new_position[0]][new_node_r] not in wall_arr: 
+                new_inky_position = new_position[0],new_node_r
+        data_for_inky += 1
+        
     return new_position
         
