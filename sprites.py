@@ -4,6 +4,8 @@ import random
 from os import path
 from settings import *
 from brs_agent import *
+from ghost_behavior import *
+
 vec = pg.math.Vector2
 random.seed()
 
@@ -43,6 +45,11 @@ def collide_with_walls(sprite, dir, group):
             sprite.rect.y = sprite.pos.y
             return True
 
+def dir_definer(vel):
+    if vel > 0:
+        return 1
+    else:
+        return -1
 
 class Player(pg.sprite.Sprite):
     def __init__(self, game, x, y):
@@ -113,7 +120,7 @@ class Player(pg.sprite.Sprite):
         self.teleport()
         collision = self.move()
         self.animate()
-        # print(self.rot)
+        # # print(self.rot)
         if collision:
             self.image = pg.transform.scale(pg.transform.rotate(self.game.player_img, self.previous_rot), (self.game.tilesize, self.game.tilesize))
             self.get_keys(self.previous_key)
@@ -172,11 +179,11 @@ class Ghost(pg.sprite.Sprite):
 
     def following(self):
         #define following function to catch the player
-        # print(self.path)        
+        # # print(self.path)        
         if self.previous_key != self.key:
-            print("I change it")
+            # print("I change it")
             self.previous_key = self.key
-        if len(self.path) <= 1 and self.game.is_pellet == False and self.game.seconds < 20:
+        if len(self.path) <= 1 and self.game.is_pellet == False and self.game.session_time < 20:
             return 0
         elif len(self.path) <= 1 and self.game.is_pellet == False:
             self.game_over()
@@ -201,7 +208,7 @@ class Ghost(pg.sprite.Sprite):
             else:
                 self.key = 3
              
-        print("Place to go:", vec(self.path[self.index + 1][0],self.path[self.index + 1][1]))
+        # print("Place to go:", vec(self.path[self.index + 1][0],self.path[self.index + 1][1]))
 
         
 
@@ -218,22 +225,13 @@ class Ghost(pg.sprite.Sprite):
             self.vel.y = -self.speed
 
     def movement(self):
-        # changing velocity
-        # self.get_keys(self.key)
-        # now = pg.time.get_ticks()
-        # if now - self.last_update > 5000:
-        
-        #     self.turn()
-        #     self.last_update = now
         if self.game.player.keys != -1:
-            # self.following()
             self.speed = self.game.ghost_speed
             self.pos += self.vel * self.game.dt
             self.rect.x = self.pos.x
             coll = collide_with_walls(self,'x',self.game.walls)
             self.rect.y = self.pos.y
-            # self.teleport() print
-            # try self.teleport() exeptt
+
             if not coll:
                 coll = collide_with_walls(self,'y',self.game.walls)
             return coll
@@ -269,7 +267,7 @@ class Ghost(pg.sprite.Sprite):
 
 
         # if self.key == 1 and self.rect.x + self.game.tilesize == self.turn_point[0] and self.rect.y == self.turn_point[1]:
-        #     # print(vec(self.rect.center))
+            # print(vec(self.rect.center))
         #     self.following()
         # elif self.key == 0 and self.rect.x == self.turn_point[0] and self.rect.y == self.turn_point[1]:
         #     self.following()
@@ -289,18 +287,25 @@ class Blinky(Ghost):
     def behaviour(self):
         map_len = len(self.game.map_data[0])
         #convert nodes with
+        
         self.player_now = vec(self.game.player.rect.center) // self.game.tilesize - vec(int((self.game.GRIDWIDTH-map_len)/2) , 5)
         ghost_now = vec(self.rect.center) // self.game.tilesize - vec(int((self.game.GRIDWIDTH-map_len)/2) , 5)
         
-        # if vec(self.player_now) != vec(-17, -5) and self.game.player.current_tile != self.player_now :
+        self.game.data_for_inky = dist(ghost_now,self.player_now)
+        # if vec(self.player_now) != vec(int((self.game.GRIDWIDTH-map_len)/2), -5) and self.game.player.current_tile != self.player_now :
         now = pg.time.get_ticks()
-        if now - self.last_update > 100 and vec(self.player_now) != vec(-17, -5):
+
+
+        if now - self.last_update > 100 and vec(self.player_now) != vec(-int((self.game.GRIDWIDTH-map_len)/2), -5):
             self.last_update = now
             # self.game.player.current_tile = self.player_now
             ghost_now = (int(ghost_now[1]),int(ghost_now[0]))
             self.player_now = (int(self.player_now[1]),int(self.player_now[0]))
 
-            if self.game.is_pellet == False:
+            if self.game.scatter_mode == True:
+                self.path = breadth_search(self.game.maze,ghost_now,(1,len(self.game.maze[0])-2))
+
+            elif self.game.is_pellet == False:
                 self.game.ghost_img = pg.image.load(path.join(self.game.img_folder, BLINKY)).convert_alpha()
                 self.image = pg.transform.scale(self.game.ghost_img, (self.game.tilesize, self.game.tilesize))
                 self.path = breadth_search(self.game.maze,ghost_now,self.player_now)
@@ -329,25 +334,33 @@ class Pinky(Ghost):
     def behaviour(self):
         map_len = len(self.game.map_data[0])
         #convert nodes with
-        self.player_now = vec(self.game.player.rect.center) // self.game.tilesize - vec(int((self.game.GRIDWIDTH-map_len)/2) , 5)
+        player_now = vec(self.game.player.rect.center) // self.game.tilesize - vec(int((self.game.GRIDWIDTH-map_len)/2) , 5)
         ghost_now = vec(self.rect.center) // self.game.tilesize - vec(int((self.game.GRIDWIDTH-map_len)/2) , 5)
         
-        # if vec(self.player_now) != vec(-17, -5) and self.game.player.current_tile != self.player_now :
+        # if vec(player_now) != vec(int((self.game.GRIDWIDTH-map_len)/2), -5) and self.game.player.current_tile != player_now :
+        
+        ghost_now = (int(ghost_now[1]),int(ghost_now[0]))
+        player_now = (int(player_now[1]),int(player_now[0]))
         now = pg.time.get_ticks()
-        if now - self.last_update > 100 and vec(self.player_now) != vec(-17, -5):
-            self.last_update = now
-            # self.game.player.current_tile = self.player_now
-            ghost_now = (int(ghost_now[1]),int(ghost_now[0]))
-            self.player_now = (int(self.player_now[1]),int(self.player_now[0]))
+        if now - self.last_update > 500:
+            self.dir = dir_definer(self.game.player.speed)
+            self.dest = pinky_beh(self.game.maze,player_now,self.dir)
 
-            if self.game.is_pellet == False:
-                self.path = breadth_search(self.game.maze,ghost_now,self.game.ghost_house)
-            
-            elif self.eated == True:
-                self.ghost_img = pg.image.load(path.join(self.game.img_folder, "dead_gh.png")).convert_alpha()
-                self.image = pg.transform.scale(self.ghost_img, (self.game.tilesize, self.game.tilesize))
-                self.path = breadth_search(self.game.maze,ghost_now,self.game.ghost_house)
-                # print("Power-up path:",self.path)
+        if now - self.last_update > 100 and vec(player_now) != vec(-int((self.game.GRIDWIDTH-map_len)/2), -5):
+            self.last_update = now
+            # ghost_now = (int(ghost_now[1]),int(ghost_now[0]))
+            # player_now = (int(player_now[1]),int(player_now[0]))
+        
+
+            if self.game.scatter_mode == True:
+                self.path = breadth_search(self.game.maze,ghost_now,(1,1))
+            elif self.game.is_pellet == False:
+                self.game.ghost_img = pg.image.load(path.join(self.game.img_folder, PINKY)).convert_alpha()
+                self.image = pg.transform.scale(self.game.ghost_img, (self.game.tilesize, self.game.tilesize))
+                self.dir = dir_definer(self.game.player.speed)
+                self.dest = pinky_beh(self.game.maze,player_now,self.dir)
+                # print("Destination:",dest)
+                self.path = breadth_search(self.game.maze,ghost_now,self.dest)
 
             elif self.game.is_pellet == True:
                 self.game.ghost_img = pg.image.load(path.join(self.game.img_folder, 'blue_ghost.png')).convert_alpha()
@@ -368,17 +381,24 @@ class Inky(Ghost):
         #convert nodes with
         self.player_now = vec(self.game.player.rect.center) // self.game.tilesize - vec(int((self.game.GRIDWIDTH-map_len)/2) , 5)
         ghost_now = vec(self.rect.center) // self.game.tilesize - vec(int((self.game.GRIDWIDTH-map_len)/2) , 5)
-        
-        # if vec(self.player_now) != vec(-17, -5) and self.game.player.current_tile != self.player_now :
         now = pg.time.get_ticks()
-        if now - self.last_update > 100 and vec(self.player_now) != vec(-17, -5):
+        if now - self.last_update > 500:
+            self.dir = dir_definer(self.game.player.speed)
+            # self.dest = pinky_beh(self.game.maze,player_now,self.dir)
+        # if vec(self.player_now) != vec(int((self.game.GRIDWIDTH-map_len)/2), -5) and self.game.player.current_tile != self.player_now :
+        
+        if now - self.last_update > 100 and vec(self.player_now) != vec(-int((self.game.GRIDWIDTH-map_len)/2), -5):
             self.last_update = now
             # self.game.player.current_tile = self.player_now
             ghost_now = (int(ghost_now[1]),int(ghost_now[0]))
             self.player_now = (int(self.player_now[1]),int(self.player_now[0]))
 
-            if self.game.is_pellet == False:
-                self.path = breadth_search(self.game.maze,ghost_now,self.game.ghost_house)
+            if self.game.scatter_mode == True:
+                 self.path = breadth_search(self.game.maze,ghost_now,(len(self.game.maze) - 2, 1))
+            
+            elif self.game.is_pellet == False:
+                dest = inky_beh(self.game.maze,self.player_now,self.dir,self.game.data_for_inky)
+                self.path = breadth_search(self.game.maze,ghost_now,dest)
             
             elif self.eated == True:
                 self.ghost_img = pg.image.load(path.join(self.game.img_folder, "dead_gh.png")).convert_alpha()
@@ -407,16 +427,23 @@ class Clyde(Ghost):
         self.player_now = vec(self.game.player.rect.center) // self.game.tilesize - vec(int((self.game.GRIDWIDTH-map_len)/2) , 5)
         ghost_now = vec(self.rect.center) // self.game.tilesize - vec(int((self.game.GRIDWIDTH-map_len)/2) , 5)
         
-        # if vec(self.player_now) != vec(-17, -5) and self.game.player.current_tile != self.player_now :
+        # if vec(self.player_now) != vec(int((self.game.GRIDWIDTH-map_len)/2), -5) and self.game.player.current_tile != self.player_now :
         now = pg.time.get_ticks()
-        if now - self.last_update > 100 and vec(self.player_now) != vec(-17, -5):
+        if now - self.last_update > 100 and vec(self.player_now) != vec(-int((self.game.GRIDWIDTH-map_len)/2), -5):
             self.last_update = now
             # self.game.player.current_tile = self.player_now
             ghost_now = (int(ghost_now[1]),int(ghost_now[0]))
             self.player_now = (int(self.player_now[1]),int(self.player_now[0]))
 
-            if self.game.is_pellet == False:
-                self.path = breadth_search(self.game.maze,ghost_now,self.game.ghost_house)
+            if self.game.scatter_mode == True:
+                self.path = breadth_search(self.game.maze,ghost_now,(len(self.game.maze)-2,len(self.game.maze[0])-2))
+            
+            elif self.game.is_pellet == False:
+                if clyde_beh(ghost_now,self.player_now):
+                    self.path = breadth_search(self.game.maze,ghost_now,self.player_now)
+                else:
+                    self.path = breadth_search(self.game.maze,ghost_now,(1,1))
+                
             
             elif self.eated == True:
                 self.ghost_img = pg.image.load(path.join(self.game.img_folder, "dead_gh.png")).convert_alpha()
@@ -435,17 +462,18 @@ class Clyde(Ghost):
 
 
 class Wall(pg.sprite.Sprite):
-    def __init__(self, game, x, y):
+    def __init__(self, game, x, y, image):
         self.groups = game.all_sprites, game.walls
         pg.sprite.Sprite.__init__(self, self.groups)
         self.game = game
-        self.image = pg.Surface((self.game.tilesize, self.game.tilesize))
-        self.image.fill(BLUE)
+        img_folder = path.join(self.game.game_folder, 'images')
+        self.image = pg.transform.scale(pg.image.load(path.join(game.img_folder, image)),
+                                        (game.tilesize, game.tilesize))
         self.rect = self.image.get_rect()
-        self.x = x
-        self.y = y
-        self.rect.x = x * self.game.tilesize
-        self.rect.y = y * self.game.tilesize
+        # self.x = x
+        # self.y =y
+        self.rect.x = x * game.tilesize
+        self.rect.y = y * game.tilesize
 
 class Map_Object(pg.sprite.Sprite):
     def __init__(self, groups ,game, x, y):
@@ -453,11 +481,10 @@ class Map_Object(pg.sprite.Sprite):
         pg.sprite.Sprite.__init__(self, groups)
         game_folder = path.dirname(__file__)
         img_folder = path.join(game_folder, 'images')
-        
-        self.image.set_colorkey(BLACK)
+        # self.image.set_colorkey(BLACK)
         self.rect = self.image.get_rect()
-        self.x = x
-        self.y =y
+        # self.x = x
+        # self.y =y
         self.rect.x = x * game.tilesize
         self.rect.y = y * game.tilesize
     
@@ -475,3 +502,13 @@ class Pellets(Map_Object):
                                         (game.tilesize, game.tilesize))
         Map_Object.__init__(self, self.groups ,game, x, y)
 
+class Lifes(Map_Object):
+    def __init__(self,game, x, y):
+        self.groups = game.all_sprites
+        self.image = pg.transform.scale(pg.image.load(path.join(game.img_folder, 'pacman_right.png')),
+                                        (game.tilesize, game.tilesize))
+        Map_Object.__init__(self, self.groups ,game, x, y)
+
+
+
+           

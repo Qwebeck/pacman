@@ -23,6 +23,7 @@ class Game:
         self.score = 0
         self.minutes = 0
         self.seconds = 0
+        self.session_time = 0
         self.font_name = pg.font.match_font(FONT_NAME)
         self.running = True
         #timer variable
@@ -33,6 +34,10 @@ class Game:
         # self.img_folder = path.join(self.game_folder, 'images')
         self.is_pellet = False
         self.pellet_activation = 0
+        self.scatter_mode = False
+
+
+        
       
         
     
@@ -54,7 +59,7 @@ class Game:
     def load_data(self):
         self.game_folder = path.dirname(__file__)
         self.img_folder = path.join(self.game_folder, 'images')
-        print("Image folder in main:",self.img_folder)
+        # print("Image folder in main:",self.img_folder)
         self.player_img = pg.image.load(path.join(self.img_folder, PACMAN_IMAGE[2])).convert_alpha()
         self.blinky_img = pg.image.load(path.join(self.img_folder, BLINKY)).convert_alpha()
         self.pinky_img = pg.image.load(path.join(self.img_folder, PINKY)).convert_alpha()
@@ -101,25 +106,30 @@ class Game:
     #         self._render_region(image, zeroed_rect, inside, rad)
     #     surface.blit(image, rect)
        
-    def draw_walls(self):
-        for rect in self.walls_on_map:
-            pg.draw.rect(self.screen,WHITE,rect,1)
+    # def draw_walls(self):
+    #     for rect in self.walls_on_map:
+    #         pg.draw.rect(self.screen,WHITE,rect,1)
+
             
         #    self.rect(self.screen, rect, WHITE, 2, 1, BLUE)
            
 
     # initialize all variables and do all the setup for a new game
     def new(self):
-        self.seconds = 0
-        self.minutes = 0
+        self.session_time = 0
         self.all_sprites = pg.sprite.Group()
         self.walls = pg.sprite.Group()
         self.coins = pg.sprite.Group()
         self.ghosts = pg.sprite.Group()
         self.player_group = pg.sprite.Group()
         self.pellets = pg.sprite.Group()
-        for row in self.maze:
-            print(row)
+        self.data_for_inky = 0
+        for life in range(self.life_counter):
+                x = ((self.GRIDWIDTH - len(self.map_data[0])) // 2 + 5 + life + 0.10*life)  
+                y = ((self.GRIDHEIGHT - len(self.map_data) + 4)) 
+                Lifes(self,x,y)
+        # for row in self.maze:
+            # print(row)
         self.walls_on_map = []
         map_len = len(self.map_data[0])
         for y in range(len(self.maze)):
@@ -129,7 +139,7 @@ class Game:
                 if self.maze[y][x] == 1:
                     #without params can be a beatiful space mode 
                     self.walls_on_map.append((col * self.tilesize,row * self.tilesize,self.tilesize,self.tilesize))
-                    Wall(self, col, row)
+                    Wall(self, col, row,WALLS[0])
                 elif self.maze[y][x] == 0:
                     Coins(self,col,row)
                 elif self.maze[y][x] == 3:
@@ -138,11 +148,33 @@ class Game:
                     self.ghost_house = (row - 5,col - int((self.GRIDWIDTH-map_len)/2))
                 elif self.maze[y][x] == 'P':
                     self.player = Player(self, col, row)
+                elif self.maze[y][x] == 'C':
+                    Wall(self, col, row,WALLS[7])
+                elif self.maze[y][x] == 'V':
+                    Wall(self, col, row,WALLS[6])
+                elif self.maze[y][x] == 'N':
+                    Wall(self, col, row,WALLS[4])
+                elif self.maze[y][x] == 'F':
+                    Wall(self, col, row,WALLS[1])
+                elif self.maze[y][x] == 'J':
+                    Wall(self, col, row,WALLS[2])
+                elif self.maze[y][x] == 'M':
+                    Wall(self, col, row,WALLS[3])
+                elif self.maze[y][x] == 'B':
+                    Wall(self, col, row,WALLS[5])
+                
+                
+                
+                
+                
+                
+                
+                
                 elif self.maze[y][x] == 'G':
                     # print(self.maze)
                     ghost_cord = (row - 5,col - int((self.GRIDWIDTH-map_len)/2))
-                    print("Player :",self.player_cords)
-                    print("Ghost :",ghost_cord)
+                    # print("Player :",self.player_cords)
+                    # print("Ghost :",ghost_cord)
                     path = breadth_search(self.maze,ghost_cord,self.player_cords)
                     Blinky(self,col,row,path)
                 elif self.maze[y][x] == 'p':
@@ -160,6 +192,7 @@ class Game:
                     ghost_cord = (row - 5,col - int((self.GRIDWIDTH-map_len)/2))
                     path = breadth_search(self.maze,ghost_cord, (ghost_cord[0],ghost_cord[1]-1))
                     Clyde(self,col,row,path)
+                
 
 
 
@@ -204,7 +237,7 @@ class Game:
     def run(self):
         #print
         # game loop - set self.playing = False to end the game
-        print(self.life_counter)
+        # print(self.life_counter)
         self.playing = True
         while self.playing:
             self.dt = self.clock.tick(FPS) / 1000
@@ -212,11 +245,16 @@ class Game:
             if now - self.last_update > 1000:
                 self.last_update = now
                 self.seconds += 1
+                self.session_time += 1
                 if self.seconds >= 60:
                     self.seconds = 0
                     self.minutes += 1
+            # if self.session_time % 5 == 0 :
+            #     self.scatter_mode = not self.scatter_mode
             if now - self.pellet_activation > 4000 and  self.is_pellet == True:
                 self.is_pellet = False
+            
+           
             self.events()
             self.update()
             self.draw()
@@ -246,11 +284,14 @@ class Game:
             seconds = "0" + str(self.seconds)
         else:
             seconds = str(self.seconds)
-        self.draw_text("Timer ", self.tilesize, WHITE, self.GRIDWIDTH // 2 * self.tilesize, 3 * self.tilesize)
+        self.draw_text("Timer :", self.tilesize, WHITE, self.GRIDWIDTH // 2 * self.tilesize, 3 * self.tilesize)
         self.draw_text(minutes +":" + seconds, self.tilesize, WHITE, (self.GRIDWIDTH // 2 + 3) * self.tilesize, 3 * self.tilesize)
-        self.draw_text("Score ", self.tilesize, WHITE, (self.GRIDWIDTH - len(self.map_data[0])) // 2 * self.tilesize, 3 * self.tilesize)
+        self.draw_text("Score :", self.tilesize, WHITE, (self.GRIDWIDTH - len(self.map_data[0])) // 2 * self.tilesize, 3 * self.tilesize)
         self.draw_text(str(self.score), self.tilesize, WHITE, ((self.GRIDWIDTH - len(self.map_data[0])) // 2 + 5) * self.tilesize, 3 * self.tilesize)
-
+        self.draw_text("Lifes :", self.tilesize, WHITE, ((self.GRIDWIDTH - len(self.map_data[0])) // 2 ) * self.tilesize, ((self.GRIDHEIGHT - len(self.map_data) + 4)) * self.tilesize)
+        
+            
+            
 
 
     def draw(self):
@@ -259,7 +300,6 @@ class Game:
         self.draw_grid()
         self.all_sprites.draw(self.screen)
         self.drawing_of_changable()
-        self.draw_walls()
         pg.display.flip()
 
 
@@ -359,7 +399,7 @@ class Game:
 g = Game()
 g.show_start_screen()
 while True:
-    if g.life_counter == 0:
+    if g.life_counter == -1:
         break
     g.new()
     g.run()
