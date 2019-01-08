@@ -15,7 +15,7 @@ FONT_NAME = "arial"
 WIDTH = 1024   # 16 * 64 or 32 * 32 or 64 * 16
 HEIGHT = 768  # 16 * 48 or 32 * 24 or 64 * 12
 FPS = 70
-TITLE = "Tilemap Demo"
+TITLE = "Pacman game"
 # BGCOLOR = DARKGREY
 BGCOLOR = BLACK
 #should grow with growth of pixels per second 
@@ -27,7 +27,7 @@ PLAYER_SPEED = 80
 ANIMATION_SPEED = 40
 PACMAN_IMAGE = ['pacman_top.png', 'animation_pacman_top.png', 'circle.png']
 DEATH = ['dying_1.png','dying_2.png','dying_3.png','dying_4.png','dying_5.png','dying_6.png','dying_7.png','dying_8.png','dying_9.png','dying_10.png','dying_11.png',]
-
+FRUITS = ['cherry.png','red_apple.png','strawberry.png','orange_apple.png','green_apple.png']
 #mob settings
 GHOSTS = 5
 GHOST_IMAGE = 'red_ghost.png'

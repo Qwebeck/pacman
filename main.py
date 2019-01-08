@@ -6,10 +6,13 @@ from sprites import *
 import thorpy as th
 from brs_agent import *
 import pytmx
+import random
+random.seed()
 
 class Game:
     def __init__(self):
         pg.init()
+        pg.mixer.init()
         self.speed=PLAYER_SPEED
         self.tilesize = TILESIZE
         self.GRIDWIDTH = WIDTH / self.tilesize
@@ -26,6 +29,7 @@ class Game:
         self.session_time = 0
         self.font_name = pg.font.match_font(FONT_NAME)
         self.running = True
+       
         #timer variable
         self.last_update = 0
         self.last_scatter_update = 0
@@ -35,17 +39,37 @@ class Game:
         self.pellet_activation = 0
         self.p_ch_index = 0
         self.scatter_mode = True   
+        self.level = 1
+        self.fruit = 0
+        self.free_nodes = []
+        self.picked = 0 # check for fruits 
 
     def load_data(self):
+        self.volume = 0.1
         self.game_folder = path.dirname(__file__)
         self.img_folder = path.join(self.game_folder, 'images')
         self.dead_anim = path.join(self.img_folder, 'dead_an')
+        self.fruit_folder = path.join(self.img_folder, 'fruits')
+        self.sound_folder = path.join(self.game_folder,'sounds')
+
         # print("Image folder in main:",self.img_folder)
         self.player_img = pg.image.load(path.join(self.img_folder, PACMAN_IMAGE[2])).convert_alpha()
         self.blinky_img = pg.image.load(path.join(self.img_folder, BLINKY)).convert_alpha()
         self.pinky_img = pg.image.load(path.join(self.img_folder, PINKY)).convert_alpha()
         self.inky_img = pg.image.load(path.join(self.img_folder, INKY)).convert_alpha()
         self.clyde_img = pg.image.load(path.join(self.img_folder, CLYDE)).convert_alpha()
+        self.eat_coin = pg.mixer.Sound(path.join(self.sound_folder,'pacman_chomp.wav'))
+        self.intro = pg.mixer.Sound(path.join(self.sound_folder,'pacman_beginning.wav'))
+        self.death_sound = pg.mixer.Sound(path.join(self.sound_folder,'pacman_death.wav'))
+        self.eat_fruit_sound = pg.mixer.Sound(path.join(self.sound_folder,'pacman_eatfruit.wav'))
+        self.eat_ghost = pg.mixer.Sound(path.join(self.sound_folder,'pacman_eatghost.wav'))  
+        self.intro.set_volume(self.volume) 
+        self.eat_coin.set_volume(self.volume)
+        self.intro.set_volume(self.volume)
+        self.death_sound.set_volume(self.volume)
+        self.eat_fruit_sound.set_volume(self.volume)
+        self.eat_ghost.set_volume(self.volume)
+        self.current_sound = self.intro     
         self.running = False
         self.FPS = FPS
         self.map_data = []
@@ -68,12 +92,18 @@ class Game:
         self.pellets = pg.sprite.Group()
         self.fruits= pg.sprite.Group()
         self.data_for_inky = 0
-        self.score = 0
         self.scatter_mode = True
+        self.intro.play()
+        
+        
         for life in range(self.life_counter):
                 x = ((self.GRIDWIDTH - len(self.map_data[0])) // 2 + 5 + life + 0.10*life)  
                 y = ((self.GRIDHEIGHT - len(self.map_data) + 4)) 
-                Lifes(self,x,y)
+                Stats(self,x,y,'pacman_right.png')
+        x = ((self.GRIDWIDTH - len(self.map_data[0]) //2 - 5))  
+        y = ((self.GRIDHEIGHT - len(self.map_data) + 4)) 
+        Stats(self,x,y,FRUITS[(self.level - 1) % len(FRUITS)])
+            
         for row in self.maze:
             print(row)
         self.walls_on_map = []
@@ -87,7 +117,8 @@ class Game:
                     self.walls_on_map.append((col * self.tilesize,row * self.tilesize,self.tilesize,self.tilesize))
                     Wall(self, col, row,WALLS[0])
                 elif self.maze[y][x] == 0:
-                    Coins(self,col,row)
+                    if (col,row) not in self.free_nodes:
+                        Coins(self,col,row)
                 elif self.maze[y][x] == 3:
                     Pellets(self,col,row)
                 elif self.maze[y][x] == 'H':
@@ -159,7 +190,12 @@ class Game:
                 self.scatter_mode = not self.scatter_mode
                 print("Scatter mode activation")
                 print("Scatter mode state:", self.scatter_mode)
-            
+            # print(self.free_nodes)
+            if self.score  > 100 and self.fruit == 0:
+                print("Fruit appear")
+                fruit_position = random.choice(self.free_nodes)
+                Fruit(self,fruit_position[0],fruit_position[1],(self.level - 1) % len(FRUITS))
+                self.fruit = 1
                 
             if now - self.pellet_activation > 4000 and  self.is_pellet == True:
                 self.is_pellet = False
@@ -177,12 +213,13 @@ class Game:
     def update(self):
         # update portion of the game loop
         # self.all_sprites.update()
-       
+        
         self.coins.update()
         self.pellets.update()
         self.walls.update()
         self.ghosts.update()
         self.player_group.update()
+       
         
         # self.draw_walls()
 
@@ -214,6 +251,10 @@ class Game:
         # self.draw_grid()
         self.all_sprites.draw(self.screen)
         self.drawing_of_changable()
+        if self.picked == 1:
+                x = ((self.GRIDWIDTH - len(self.map_data[0]) //2 - 5) * self.tilesize)  
+                y = ((self.GRIDHEIGHT - len(self.map_data) + 4) * self.tilesize) 
+                pg.draw.rect(self.screen,BLACK,(x,y,self.tilesize,self.tilesize))
 
         # self.path_draw(self.ghost.path)
         
@@ -285,6 +326,7 @@ class Game:
         varset.add("speed", value=PLAYER_SPEED, text="Speed:", limits=(10, 500))
         varset.add("ghosts", value=GHOSTS, text="Ghosts:", limits=(0, 20))
         varset.add("ghost_speed", value=GHOST_SPEED, text="Ghosts speed:", limits=(10, 500))
+        varset.add("volume", value=self.volume * 100, text="Volume:", limits=(0, 100))
         e_options = th.ParamSetterLauncher.make([varset], "Options", "Options")
         quit_button = th.make_button("Quit",func=th.functions.quit_func)
         elements = [e_title, play_button, e_options, quit_button]
@@ -300,6 +342,7 @@ class Game:
         self.GRIDHEIGHT = HEIGHT / self.tilesize
         self.ghosts = varset.get_value("ghosts")
         self.ghost_speed = varset.get_value("ghost_speed")
+        self.volume = varset.get_value("volume")/100
         if self.speed != PLAYER_SPEED:
             self.FPS = 100
 
@@ -313,7 +356,7 @@ class Game:
 
 # create the game object
 g = Game()
-# g.show_start_screen()
+g.show_start_screen()
 while True:
     if g.life_counter == -1:
         break

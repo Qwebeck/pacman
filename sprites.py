@@ -97,13 +97,28 @@ class Player(pg.sprite.Sprite):
         self.pos += self.vel * self.game.dt
         self.rect.x = self.pos.x
         coll = collide_with_walls(self,'x',self.game.walls)
-        if pg.sprite.spritecollide(self, self.game.coins, True):
+        hits = pg.sprite.spritecollide(self, self.game.coins, True)
+        fruit_hit = pg.sprite.spritecollide(self, self.game.fruits,True)
+        if fruit_hit:
+            self.game.current_sound.stop()
+            self.game.current_sound = self.game.eat_fruit_sound
+            self.game.score += 200 *(self.game.level % len(FRUITS))
+            self.game.picked = 1
+            self.game.eat_fruit_sound.play()
+        if hits:
+            self.game.current_sound.stop()
+            self.game.current_sound = self.game.eat_coin
             self.game.score += 10
+            self.game.free_nodes.append((hits[0].rect.x // self.game.tilesize , hits[0].rect.y // self.game.tilesize))
+            self.game.eat_coin.play()
         # power up that turns all ghosts in blue  
         if pg.sprite.spritecollide(self,self.game.pellets,True):
+            self.game.current_sound.stop()
+            self.game.current_sound = self.game.eat_coin
             self.game.pellet_activation = self.last_update
             self.game.is_pellet = True
             self.game.score += 50
+            self.game.eat_coin.play()
             
         self.rect.y = self.pos.y
         if not coll:
@@ -137,9 +152,6 @@ class Player(pg.sprite.Sprite):
             self.previous_key = self.keys
             self.previous_rot = self.rot
 
-
-
-
     def animate(self):
         now = pg.time.get_ticks()
         if now - self.last_update > ANIMATION_SPEED and self.keys != -1:
@@ -153,7 +165,6 @@ class Player(pg.sprite.Sprite):
                                             PACMAN_IMAGE[2])).convert_alpha()
                 self.game.playing = False
                 return 0
-            
             self.last_update = now
             self.game.swap(3,0)
             self.game.player_img = pg.image.load(path.join(self.game.dead_anim, 
@@ -177,6 +188,7 @@ class Ghost(pg.sprite.Sprite):
         self.index = 0
         self.key = -1
         self.previous_key = -1
+        
         
     def following(self):
         #define following function to catch the player
@@ -253,7 +265,10 @@ class Ghost(pg.sprite.Sprite):
         
     def game_over(self):
         self.game.player.keys = self.game.player.previous_key = -1
+        self.game.current_sound.stop()
+        self.game.current_sound = self.game.death_sound
         # self.game.playing = False
+        self.game.death_sound.play()
         self.game.life_counter -= 1 
 
     def update(self):
@@ -261,8 +276,12 @@ class Ghost(pg.sprite.Sprite):
             self.behaviour()
             if pg.sprite.spritecollide(self,self.game.player_group,False) and self.game.is_pellet == True:
                 print("Eated: ",self.game.is_pellet)
+                self.game.current_sound.stop()
+                self.game.current_sound = self.game.eat_ghost
                 self.eated = True 
                 self.game.score += 200
+                self.game.eat_ghost.play()
+
             elif pg.sprite.spritecollide(self,self.game.player_group,False) and self.game.is_pellet == False and self.eated == False:
                 self.game_over()
        
@@ -275,11 +294,7 @@ class Ghost(pg.sprite.Sprite):
         else:
             if self.previous_key != self.key:
                 self.previous_key = self.key
-        
-
-
-      
-           
+              
 class Blinky(Ghost):
 
     def __init__(self, game, x, y,path=None):
@@ -515,20 +530,21 @@ class Pellets(Map_Object):
                                         (game.tilesize, game.tilesize))
         Map_Object.__init__(self, self.groups ,game, x, y)
 
-class Lifes(Map_Object):
-    def __init__(self,game, x, y):
+class Stats(Map_Object):
+    def __init__(self,game, x, y,image):
         self.groups = game.all_sprites
-        self.image = pg.transform.scale(pg.image.load(path.join(game.img_folder, 'pacman_right.png')),
+        self.image = pg.transform.scale(pg.image.load(path.join(game.img_folder, image)),
                                         (game.tilesize, game.tilesize))
         Map_Object.__init__(self, self.groups ,game, x, y)
 
 class Fruit(Map_Object):
-    def __init__(self,game, x, y , power_up):
+    def __init__(self,game, x, y , fruit):
         self.groups = game.all_sprites, game.fruits
-        self.image = pg.transform.scale(pg.image.load(path.join(game.img_folder, POWER_UPS[power_up])),
+        self.image = pg.transform.scale(pg.image.load(path.join(game.fruit_folder, FRUITS[fruit])),
                                         (game.tilesize, game.tilesize))
         Map_Object.__init__(self, self.groups ,game, x, y)
 
+        
 
 
            
