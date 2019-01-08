@@ -31,36 +31,15 @@ class Game:
         self.last_scatter_update = 0
         self.ghost_speed = GHOST_SPEED
         self.life_counter = 3
-        # self.game_folder = path.dirname(__file__)
-        # self.img_folder = path.join(self.game_folder, 'images')
         self.is_pellet = False
         self.pellet_activation = 0
         self.p_ch_index = 0
-        self.scatter_mode = True
-
-
-        
-      
-        
-    #self.FPS
-    # def maze_transform(maze,map):
-    # for row, tiles in enumerate(map):
-    #     row = []
-    #     for col, tile in enumerate(tiles):
-    #         if tile == '\n':
-    #             break    
-    #         if tile=='.' or tile =='G' or tile == 'P':
-    #             row.append(0)    
-    #         else:
-    #             row.append(1) 
-    #     maze.append(row)
-    # return maze  player_cords
- 
-    
+        self.scatter_mode = True   
 
     def load_data(self):
         self.game_folder = path.dirname(__file__)
         self.img_folder = path.join(self.game_folder, 'images')
+        self.dead_anim = path.join(self.img_folder, 'dead_an')
         # print("Image folder in main:",self.img_folder)
         self.player_img = pg.image.load(path.join(self.img_folder, PACMAN_IMAGE[2])).convert_alpha()
         self.blinky_img = pg.image.load(path.join(self.img_folder, BLINKY)).convert_alpha()
@@ -77,45 +56,7 @@ class Game:
         self.player_cords = maze_transform(maze,self.map_data)
         self.maze = maze
        
-        # for row in self.maze:
-            # print(row)
-        
-
-    # def _render_region(self,image, rect, color, rad):
-    #     # """Helper function for round_rect."""
-    #     corners = rect.inflate(-2*rad, -2*rad)
-    #     for attribute in ("topleft", "topright", "bottomleft", "bottomright"):
-    #         pg.draw.circle(image, color, getattr(corners,attribute), rad)
-    #     image.fill(color, rect.inflate(-2*rad,0))
-    #     image.fill(color, rect.inflate(0,-2*rad))
-
-    # def round_rect(self, surface, rect, color, rad=20, border=0, inside=(0,0,0,0)):
-    #     # """
-    #     # Draw a rect with rounded corners to surface.  Argument rad can be specified
-    #     # to adjust curvature of edges (given in pixels).  An optional border
-    #     # width can also be supplied; if not provided the rect will be filled.
-    #     # Both the color and optional interior color (the inside argument) support
-    #     # alpha.
-    #     # """
-    #     rect = pg.Rect(rect)
-    #     zeroed_rect = rect.copy()
-    #     zeroed_rect.topleft = 0,0
-    #     image = pg.Surface(rect.size).convert_alpha()
-    #     image.fill((0,0,0,0))
-    #     self._render_region(image, zeroed_rect, color, rad)
-    #     if border:
-    #         zeroed_rect.inflate_ip(-2*border, -2*border)
-    #         self._render_region(image, zeroed_rect, inside, rad)
-    #     surface.blit(image, rect)
-       
-    # def draw_walls(self):
-    #     for rect in self.walls_on_map:
-    #         pg.draw.rect(self.screen,WHITE,rect,1)
-
-            
-        #    self.rect(self.screen, rect, WHITE, 2, 1, BLUE)
-           
-
+      
     # initialize all variables and do all the setup for a new game
     def new(self):
         self.session_time = 0
@@ -125,6 +66,7 @@ class Game:
         self.ghosts = pg.sprite.Group()
         self.player_group = pg.sprite.Group()
         self.pellets = pg.sprite.Group()
+        self.fruits= pg.sprite.Group()
         self.data_for_inky = 0
         self.score = 0
         self.scatter_mode = True
@@ -189,53 +131,10 @@ class Game:
                     path = breadth_search(self.maze,ghost_cord, (ghost_cord[0],ghost_cord[1]-1))
                     Clyde(self,col,row,path)
                 
-
-
-
-
-                # x -= int((self.GRIDWIDTH-map_len)/2)
-                # y -= 5
-
-        # for row, tiles in enumerate(self.map_data):
-        #     for col, tile in enumerate(tiles):
-        #         #coordinates i want map to appear
-        #         col += int((self.GRIDWIDTH-map_len)/2)
-        #         row += 5
-
-        #         if tile == '1':
-        #             Wall(self, col, row)
-        #         if tile == '.':
-        #             Coins(self,col,row)
-        #         if tile == 'P':
-        #             self.player = Player(self, col, row)
-        #         if tile == 'G':
-        #             # print(self.maze)
-        #             ghost_cord = (row - 5,col - int((self.GRIDWIDTH-map_len)/2))
-        #             print("Player :",self.player_cords)
-        #             print("Ghost :",ghost_cord)
-        #             path = breadth_search(self.maze,ghost_cord,self.player_cords)
-                    
-                    # for i in range (1,len(path) - 1):
-                    #     if path[i][0] != path[i-1][0] and path[i][1] != path[i-1][1]:
-                    #         print("Previous : ",path[i])
-                    #         print("Current :",path[i-1])
-                    # print("Path :",path)
-                    # Ghost(self,col,row,path)
-
-                # if tile == 'T':
-                #GHOST_SPEED
-                #     if tile in self.teleports:
-                #         #gridheight guarants me that there will be no repeated keys in dictionary
-                #         self.teleports[col + GRIDHEIGHT] = row
-                #     else:
-                #         self.teleports[col]=row
-             
     def path_draw(self,path):
         map_len = len(self.map_data[0])
         for node in path:
             pg.draw.circle(self.screen,RED,((node[1] + int((self.GRIDWIDTH-map_len)/2)) * self.tilesize + 8,(node[0] + 5) * self.tilesize + 8 ),1)
-    
-    
     
     def run(self):
         #print
@@ -270,7 +169,6 @@ class Game:
             self.events()
             self.update()
             self.draw()
-
 
     def quit(self):
         pg.quit()
@@ -309,10 +207,6 @@ class Game:
         self.draw_text(str(self.score), self.tilesize, WHITE, ((self.GRIDWIDTH - len(self.map_data[0])) // 2 + 5) * self.tilesize, 3 * self.tilesize)
         self.draw_text("Lifes :", self.tilesize, WHITE, ((self.GRIDWIDTH - len(self.map_data[0])) // 2 ) * self.tilesize, ((self.GRIDHEIGHT - len(self.map_data) + 4)) * self.tilesize)
         
-            
-            
-
-
     def draw(self):
         pg.display.set_caption("{:.2f}".format(self.clock.get_fps()))
         # pg.display.set_caption("{:.2f}".format(self.session_time))
@@ -324,7 +218,6 @@ class Game:
         # self.path_draw(self.ghost.path)
         
         pg.display.flip()
-
 
     def events(self):
         # catch all events here
@@ -349,7 +242,6 @@ class Game:
                     self.swap(2,180)
                     # self.player.rot = 180
 
-
     def swap(self, dir ,rot):
         if self.player.previous_key == -1 :
             self.player.keys = dir
@@ -360,7 +252,6 @@ class Game:
             self.player.rot, self.player.previous_rot = rot, self.player.rot
             self.player.keys, self.player.previous_key = dir, self.player.keys
             
-
     def draw_text(self, text, size, color, x, y):
         font = pg.font.Font(self.font_name, size)
         text_surface = font.render(text, True, color)
@@ -368,20 +259,20 @@ class Game:
         text_rect.topleft = (x, y)
         self.screen.blit(text_surface, text_rect)
 
-    def wait_for_key(self):
-        waiting = True
-        while waiting:
-            self.clock.tick(self.FPS)
-            # for event in pg.event.get():
-                # self.menu.react(event)
-                # print(self.slider.get_value())
-                # self.tilesize = int(self.slider.get_value())
-            for event in pg.event.get():
-                if event.type == pg.QUIT:
-                    waiting = False
-                    self.running = False
-                if event.type == pg.KEYUP:
-                    waiting = False
+    # def wait_for_key(self):
+    #     waiting = True
+    #     while waiting:
+    #         self.clock.tick(self.FPS)
+    #         # for event in pg.event.get():
+    #             # self.menu.react(event)
+    #             # print(self.slider.get_value())
+    #             # self.tilesize = int(self.slider.get_value())
+    #         for event in pg.event.get():
+    #             if event.type == pg.QUIT:
+    #                 waiting = False
+    #                 self.running = False
+    #             if event.type == pg.KEYUP:
+    #                 waiting = False
 
     def show_start_screen(self):
         application = th.Application(size=(WIDTH, HEIGHT), caption="Hello world")
@@ -415,7 +306,6 @@ class Game:
         # pg.display.flip()
         # self.wait_for_key()
 
-
     def show_go_screen(self):
         pass
 
@@ -423,37 +313,13 @@ class Game:
 
 # create the game object
 g = Game()
-g.show_start_screen()
+# g.show_start_screen()
 while True:
     if g.life_counter == -1:
         break
+    
     g.new()
     g.run()
 g.show_go_screen()
 
 
-#  self.screen.fill(BGCOLOR)
-#             application = th.Application(size=(WIDTH, HEIGHT), caption="Hello world")
-#
-#             e_title = th.make_text("Pacman", font_size=20, font_color=(0, 0, 150))
-#             e_title.center()
-#             e_title.set_topleft((None, 10))
-#             play_button = th.make_button("Play", func=th.functions.quit_menu_func)
-#
-#             varset = th.VarSet()
-#             varset.add("tilesize", value=TILESIZE, text="Size of objects:", limits=(8, 32))
-#             varset.add("speed", value=PLAYER_SPEED, text="Speed:", limits=(10, 500))
-#             varset.add("player_name", value=PLAYER_NAME, text="Player name:")
-#             e_options = th.ParamSetterLauncher.make([varset], "Options", "Options")
-#             e_background = th.Background.make(color=DARKGREY,
-#                                               elements=[e_title, play_button, e_options])
-#             th.store(e_background, [play_button, e_options])
-#             th.store(e_background)
-#
-#             menu = th.Menu(e_background)  # create a menu on top of the background
-#             menu.play()  # launch the menu
-#             pg.display.flip()
-#             MOD_TILE = varset.get_value("tilesize")
-#             MOD_NAME = varset.get_value("player_name")
-#             MOD_SPEED = varset.get_value("speed")
-#             return  MOD_TILE,MOD_SPEED,MOD_NAME

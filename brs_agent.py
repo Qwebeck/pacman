@@ -55,9 +55,6 @@ def maze_transform(maze,map):
         maze.append(el_row)
     return player_coordinates
  
-
-
-
 def breadth_search(maze,start,end):
     
     wall_arr=['C','V','N','B','F','J','M']
