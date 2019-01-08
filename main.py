@@ -172,7 +172,7 @@ class Game:
                     # print("Player :",self.player_cords)
                     # print("Ghost :",ghost_cord)
                     path = breadth_search(self.maze,ghost_cord,self.player_cords)
-                    Blinky(self,col,row,path)
+                    self.ghost = Blinky(self,col,row,path)
                 elif self.maze[y][x] == 'p':
                     # print(self.maze)
                     ghost_cord = (row - 5,col - int((self.GRIDWIDTH-map_len)/2))
@@ -230,6 +230,13 @@ class Game:
                 #     else:
                 #         self.teleports[col]=row
              
+    def path_draw(self,path):
+        map_len = len(self.map_data[0])
+        for node in path:
+            pg.draw.circle(self.screen,RED,((node[1] + int((self.GRIDWIDTH-map_len)/2)) * self.tilesize + 8,(node[0] + 5) * self.tilesize + 8 ),1)
+    
+    
+    
     def run(self):
         #print
         # game loop - set self.playing = False to end the game
@@ -307,12 +314,15 @@ class Game:
 
 
     def draw(self):
-        # pg.display.set_caption("{:.2f}".format(self.clock.get_fps()))
-        pg.display.set_caption("{:.2f}".format(self.session_time))
+        pg.display.set_caption("{:.2f}".format(self.clock.get_fps()))
+        # pg.display.set_caption("{:.2f}".format(self.session_time))
         self.screen.fill(BGCOLOR)
         # self.draw_grid()
         self.all_sprites.draw(self.screen)
         self.drawing_of_changable()
+
+        # self.path_draw(self.ghost.path)
+        
         pg.display.flip()
 
 

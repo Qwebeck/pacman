@@ -20,6 +20,9 @@ random.seed()
 
 #self.game.ghost_speed
 
+
+
+
 def collide_with_walls(sprite, dir, group):
     hits = pg.sprite.spritecollide(sprite, group, False)
     if dir == 'x':
@@ -174,8 +177,9 @@ class Ghost(pg.sprite.Sprite):
         elif len(self.path) <= 2 and self.game.scatter_mode != True:
             self.path = breadth_search(self.game.maze,self.ghost_now,self.player_now)  
 
-        if self.previous_key != self.key:
-            self.previous_key = self.key
+        # if self.previous_key != self.key:
+        #     self.previous_key = self.key
+        #     self.adjustment()
 
         if len(self.path) <= 1 and self.game.is_pellet == False and self.game.session_time < 20:
             return 0
@@ -190,10 +194,14 @@ class Ghost(pg.sprite.Sprite):
         elif self.eated == True and len(self.path) <= 1:
              self.eated == False
              return 0
-
-        map_len = len(self.game.map_data[0])
+        # map_len = len(self.game.map_data[0])
+        print("Ghost now :",self.ghost_now)
+        print("Current path node :",self.path[0][0])
+        # move_y = self.path[self.index + 1][0] - self.ghost_now[0]
+        # move_x = self.path[self.index + 1][1] - self.ghost_now[1]
         move_y = self.path[self.index + 1][0] - self.path[self.index][0] #array path to player return indexes in reverse order - [0] - y coordinates , [1] - x self.game.tilesize
         move_x =self.path[self.index + 1][1] - self.path[self.index][1]
+        
         if move_y == 0:
             if move_x > 0:#move right by x 
                 self.key = 1
@@ -204,6 +212,7 @@ class Ghost(pg.sprite.Sprite):
                 self.key = 2
             else:
                 self.key = 3
+
              
         # print("Place to go:", vec(self.path[self.index + 1][0],self.path[self.index + 1][1]))
 
@@ -221,11 +230,21 @@ class Ghost(pg.sprite.Sprite):
     def movement(self):
         if self.game.player.keys != -1:
             self.speed = self.game.ghost_speed
+            if vec(self.ghost_now) == vec(self.path[0]) and self.key != self.previous_key:
+                print("Ghost:",self.ghost_now)
+                print("Path:")
+                self.adjustment()
             self.pos += self.vel  * self.game.dt
             self.rect.x = self.pos.x
     
             # coll = collide_with_walls(self,'x',self.game.walls)
             self.rect.y = self.pos.y
+            
+
+            if self.previous_key != self.key:
+                self.previous_key = self.key
+                # self.adjustment()
+                # print("adjustment called")
             # print("Collision on x:",coll)
 
             # if not coll:
@@ -233,18 +252,30 @@ class Ghost(pg.sprite.Sprite):
                 # print("Collision on y:",coll)
             # return coll
         
+    def adjustment(self):
+        print("Called")
+        if self.previous_key == 0:
+            self.pos.x -= self.game.tilesize // 2
+        elif self.previous_key == 1:
+            self.pos.x += self.game.tilesize // 2
+        elif self.previous_key == 2:
+            self.pos.y += self.game.tilesize // 2
+        elif self.previous_key == 3:
+            self.pos.y -= self.game.tilesize // 2  
+        
     def game_over(self):
         self.game.playing = False
         self.game.life_counter -= 1 
 
     def update(self):
-        self.behaviour()
-        if pg.sprite.spritecollide(self,self.game.player_group,False) and self.game.is_pellet == True:
-            print("Eated: ",self.game.is_pellet)
-            self.eated = True 
-            self.game.score += 200
-        elif pg.sprite.spritecollide(self,self.game.player_group,True) and self.game.is_pellet == False and self.eated == False:
-            self.game_over()
+        if self.game.player.keys != -1:
+            self.behaviour()
+            if pg.sprite.spritecollide(self,self.game.player_group,False) and self.game.is_pellet == True:
+                print("Eated: ",self.game.is_pellet)
+                self.eated = True 
+                self.game.score += 200
+            elif pg.sprite.spritecollide(self,self.game.player_group,True) and self.game.is_pellet == False and self.eated == False:
+                self.game_over()
        
 
         
