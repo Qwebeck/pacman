@@ -230,10 +230,10 @@ class Ghost(pg.sprite.Sprite):
     def movement(self):
         if self.game.player.keys != -1:
             self.speed = self.game.ghost_speed
-            if vec(self.ghost_now) == vec(self.path[0]) and self.key != self.previous_key:
-                print("Ghost:",self.ghost_now)
-                print("Path:")
-                self.adjustment()
+            # if vec(self.ghost_now) == vec(self.path[0]) and self.key != self.previous_key:
+            #     print("Ghost:",self.ghost_now)
+            #     print("Path:")
+            #     self.adjustment()
             self.pos += self.vel  * self.game.dt
             self.rect.x = self.pos.x
     
@@ -254,14 +254,29 @@ class Ghost(pg.sprite.Sprite):
         
     def adjustment(self):
         print("Called")
-        if self.previous_key == 0:
-            self.pos.x -= self.game.tilesize // 2
-        elif self.previous_key == 1:
-            self.pos.x += self.game.tilesize // 2
-        elif self.previous_key == 2:
-            self.pos.y += self.game.tilesize // 2
-        elif self.previous_key == 3:
-            self.pos.y -= self.game.tilesize // 2  
+        map_len = len(self.game.map_data[0])
+        if self.key == 0:
+
+            # self.pos.x -= self.game.tilesize // 2
+            # self.ghost_now = vec(self.rect.right) // self.game.tilesize - vec(int((self.game.GRIDWIDTH-map_len)/2) , 5)
+            
+            self.ghost_now = vec(self.rect.right,self.rect.centery) // self.game.tilesize - vec(int((self.game.GRIDWIDTH-map_len)/2) , 5)
+            # print("Ghost now before adjustment:",self.ghost_now)
+        elif self.key == 1:
+            # self.pos.x += self.game.tilesize // 2
+            # self.ghost_now = vec(self.rect.left) // self.game.tilesize - vec(int((self.game.GRIDWIDTH-map_len)/2) , 5)
+            self.ghost_now = vec(self.rect.left,self.rect.centery) // self.game.tilesize - vec(int((self.game.GRIDWIDTH-map_len)/2) , 5)
+            
+        elif self.key == 2:
+            # self.pos.y += self.game.tilesize // 2
+            # self.ghost_now = vec(self.rect.top) // self.game.tilesize - vec(int((self.game.GRIDWIDTH-map_len)/2) , 5)
+            self.ghost_now = vec(self.rect.centerx,self.rect.top) // self.game.tilesize - vec(int((self.game.GRIDWIDTH-map_len)/2) , 5)
+            
+        elif self.key == 3:
+            # self.pos.y -= self.game.tilesize // 2 
+            # self.ghost_now = vec(self.rect.bottom) // self.game.tilesize - vec(int((self.game.GRIDWIDTH-map_len)/2) , 5)
+            self.ghost_now = vec(self.rect.centerx,self.rect.bottom) // self.game.tilesize - vec(int((self.game.GRIDWIDTH-map_len)/2) , 5)
+            
         
     def game_over(self):
         self.game.playing = False
@@ -316,7 +331,8 @@ class Blinky(Ghost):
         
         self.player_now = vec(self.game.player.rect.center) // self.game.tilesize - vec(int((self.game.GRIDWIDTH-map_len)/2) , 5)
         self.ghost_now = vec(self.rect.center) // self.game.tilesize - vec(int((self.game.GRIDWIDTH-map_len)/2) , 5)
-        
+        # print("Ghost now before adjustment:",self.ghost_now)
+        self.adjustment()
         self.game.data_for_inky = dist(self.ghost_now,self.player_now)
 
         if vec(self.player_now) != vec(-5,-int((self.game.GRIDWIDTH-map_len)/2)):
@@ -325,7 +341,7 @@ class Blinky(Ghost):
             
             if self.game.scatter_mode == True and self.game.p_ch_index < 2:
                 # self.path.pop(0)
-                self.path = breadth_search(self.game.maze,self.ghost_now,(1, 1))
+                self.path = breadth_search(self.game.maze,self.ghost_now,(1, 2))
                 self.game.p_ch_index += 1
 
             if self.game.scatter_mode == True:
@@ -365,6 +381,7 @@ class Pinky(Ghost):
         #convert nodes with
         self.player_now = vec(self.game.player.rect.center) // self.game.tilesize - vec(int((self.game.GRIDWIDTH-map_len)/2) , 5)
         self.ghost_now = vec(self.rect.center) // self.game.tilesize - vec(int((self.game.GRIDWIDTH-map_len)/2) , 5)
+        self.adjustment()
         self.ghost_now = (int(self.ghost_now[1]),int(self.ghost_now[0]))
         self.player_now = (int(self.player_now[1]),int(self.player_now[0]))
         
@@ -413,6 +430,7 @@ class Inky(Ghost):
         #convert nodes with
         self.player_now = vec(self.game.player.rect.center) // self.game.tilesize - vec(int((self.game.GRIDWIDTH-map_len)/2) , 5)
         self.ghost_now = vec(self.rect.center) // self.game.tilesize - vec(int((self.game.GRIDWIDTH-map_len)/2) , 5)
+        self.adjustment()
         self.ghost_now = (int(self.ghost_now[1]),int(self.ghost_now[0]))
         self.player_now = (int(self.player_now[1]),int(self.player_now[0]))
         
@@ -482,6 +500,7 @@ class Clyde(Ghost):
         #convert nodes with
         self.player_now = vec(self.game.player.rect.center) // self.game.tilesize - vec(int((self.game.GRIDWIDTH-map_len)/2) , 5)
         self.ghost_now = vec(self.rect.center) // self.game.tilesize - vec(int((self.game.GRIDWIDTH-map_len)/2) , 5)
+        self.adjustment()
         self.ghost_now = (int(self.ghost_now[1]),int(self.ghost_now[0]))
         self.player_now = (int(self.player_now[1]),int(self.player_now[0]))
         

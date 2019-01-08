@@ -423,7 +423,7 @@ class Game:
 
 # create the game object
 g = Game()
-# g.show_start_screen()
+g.show_start_screen()
 while True:
     if g.life_counter == -1:
         break
