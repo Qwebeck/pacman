@@ -87,6 +87,7 @@ class Game:
       
     # initialize all variables and do all the setup for a new game
     def new(self):
+        self.load_data()
         self.session_time = 0
         self.all_sprites = pg.sprite.Group()
         self.walls = pg.sprite.Group()
@@ -108,11 +109,11 @@ class Game:
                 Stats(self,x,y,'pacman_right.png')
         x = ((self.GRIDWIDTH - len(self.map_data[0]) //2 - 5))  
         y = ((self.GRIDHEIGHT - len(self.map_data) + 4)) 
-        Stats(self,x,y,FRUITS[(self.level - 1) % len(FRUITS)])
+        Stats(self,x,y,FRUITS[(self.level - 1) % len(FRUITS)],self.fruit_folder)
             
         for row in self.maze:
             print(row)
-        self.walls_on_map = []
+        # self.walls_on_map = []
         map_len = len(self.map_data[0])
         for y in range(len(self.maze)):
             for x in range (len(self.maze[0])):
@@ -120,7 +121,7 @@ class Game:
                 row = y + 5
                 if self.maze[y][x] == 1:
                     #without params can be a beatiful space mode 
-                    self.walls_on_map.append((col * self.tilesize,row * self.tilesize,self.tilesize,self.tilesize))
+                    # self.walls_on_map.append((col * self.tilesize,row * self.tilesize,self.tilesize,self.tilesize))
                     Wall(self, col, row,WALLS[0])
                 elif self.maze[y][x] == 0:
                     if (col,row) not in self.free_nodes:
@@ -129,6 +130,8 @@ class Game:
                     Pellets(self,col,row)
                 elif self.maze[y][x] == 'H':
                     self.ghost_house = (row - 5,col - int((self.GRIDWIDTH-map_len)/2))
+                    self.ghost_house_area = ghost_house_area(self.maze,self.ghost_house)
+                    print("Ghost house :",ghost_house_area(self.maze,self.ghost_house))
                 elif self.maze[y][x] == 'P':
                     self.player = Player(self, col, row)
                 elif self.maze[y][x] == 'C':
@@ -169,6 +172,7 @@ class Game:
                     ghost_cord = (row - 5,col - int((self.GRIDWIDTH-map_len)/2))
                     path = breadth_search(self.maze,ghost_cord, (ghost_cord[0],ghost_cord[1]-1))
                     Clyde(self,col,row,path)
+                
                 
     def path_draw(self,path):
         map_len = len(self.map_data[0])
@@ -219,7 +223,10 @@ class Game:
             
             if not self.game_over:
                 self.events()
-            self.update()
+            try :
+                self.update()
+            except (KeyError,TypeError):
+                pass
             self.draw()
 
     def quit(self):
@@ -272,7 +279,7 @@ class Game:
                 y = ((self.GRIDHEIGHT - len(self.map_data) + 4) * self.tilesize) 
                 pg.draw.rect(self.screen,BLACK,(x,y,self.tilesize,self.tilesize))
 
-        # self.path_draw(self.ghosts.path)
+        # self.path_draw(self.ghost_house_area)
         
         pg.display.flip()
 

@@ -57,9 +57,40 @@ def maze_transform(maze,map):
         maze.append(el_row)
     return player_coordinates
  
-def breadth_search(maze,start,end):
+
+
+def ghost_house_area(maze , ghost_house):
+    ghost_house_area = [ghost_house]
+    index = 0
+    output = [ghost_house]
+    wall_arr=['C','V','N','B','F','J','M','O','D',1]
+    neingh = [(0, -1), (0, 1), (-1, 0),(1, 0)]
+    node = maze[ghost_house_area[0][0]][ghost_house_area[0][1]]
+    while index < len(maze[0]) * 2:
+            # print(frontier)
+            print(ghost_house_area)
+            current = ghost_house_area[0]
+            ghost_house_area.pop(0)
+            for new_position in [(0, -1), (0, 1), (-1, 0),(1, 0)]:
+                new_node_r = new_position[0] + current[0]
+                new_node_c = new_position[1] + current[1]
+                if (new_node_r,new_node_c) not in ghost_house_area and  maze[new_node_r][new_node_c] not in wall_arr: 
+                    new_node = new_position[0] + current[0],new_position[1] + current[1]
+                    # print(current,"------------>",new_node)
+                    ghost_house_area.append(new_node)         
+                output.append(new_node)
+                index += 1
+       
+    output.append(ghost_house)
+    return output
+        
+
+def breadth_search(maze,start,end, runnig = None):
     try:
         wall_arr=['C','V','N','B','F','J','M']
+        if runnig:
+            print("running")
+            wall_arr.append('P')
         frontier = [start]
         visited = {start:None}
         while frontier:
@@ -80,6 +111,7 @@ def breadth_search(maze,start,end):
         # print(visited)
         current = end
         path = []
+        wall_arr.pop()
         while current != None:
                 path.append(current)
                 current = visited[current]
