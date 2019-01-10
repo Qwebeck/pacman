@@ -22,9 +22,15 @@ def pinky_beh(maze, position, dir):
             break
     return dest
 
+# def corner_choice(ghost_now,corners):
+#     closest = corners[0]
+#     dist = closest - cor
+#     for corner_in_corners:
+        
+
 def clyde_beh(g_pos,p_pos):
-    if sqrt((g_pos[0] - p_pos[0])**2 + (p_pos[1] - g_pos[1])**2)<8:
-            #distance between clyde and player is lesser tha 8 , so its time to run away
+    if sqrt((g_pos[0] - p_pos[0])**2 + (p_pos[1] - g_pos[1])**2)<3:
+            #distance between clyde and player is lesser than 8 , so it is time to run away
         return 0 
     else:
         return 1

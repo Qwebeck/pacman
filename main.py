@@ -9,6 +9,8 @@ import pytmx
 import random
 random.seed()
 
+#self.player.keys
+
 class Game:
     def __init__(self):
         pg.init()
@@ -41,8 +43,10 @@ class Game:
         self.scatter_mode = True   
         self.level = 1
         self.fruit = 0
+        self.game_over = False
         self.free_nodes = []
         self.picked = 0 # check for fruits 
+        self.scatter_frequency = 5000
 
     def load_data(self):
         self.volume = 0.1
@@ -93,7 +97,9 @@ class Game:
         self.fruits= pg.sprite.Group()
         self.data_for_inky = 0
         self.scatter_mode = True
-        self.intro.play()
+        self.game_over = False
+        if self.life_counter == 3:
+            self.intro.play()
         
         
         for life in range(self.life_counter):
@@ -135,6 +141,8 @@ class Game:
                     Wall(self, col, row,WALLS[1])
                 elif self.maze[y][x] == 'J':
                     Wall(self, col, row,WALLS[2])
+                elif self.maze[y][x] == 'D':
+                    Wall(self, col, row,WALLS[8])
                 elif self.maze[y][x] == 'M':
                     Wall(self, col, row,WALLS[3])
                 elif self.maze[y][x] == 'B':
@@ -183,26 +191,34 @@ class Game:
                 if self.seconds >= 60:
                     self.seconds = 0
                     self.minutes += 1
+            if bool(self.coins) == False and self.session_time > 0:
+                self.free_nodes = []
+                self.playing  = False
+                self.level += 1
+                self.score += 100
+                self.ghost_speed += 1
+                self.scatter_frequency += 100
             
-            if  now - self.last_scatter_update > 10000 :
+            if  now - self.last_scatter_update > self.scatter_frequency :
                 print("Scatter mode state before update:", self.scatter_mode)
                 self.last_scatter_update = now
+                self.scatter_frequency += 1000 
                 self.scatter_mode = not self.scatter_mode
                 print("Scatter mode activation")
                 print("Scatter mode state:", self.scatter_mode)
             # print(self.free_nodes)
-            if self.score  > 100 and self.fruit == 0:
+            if self.score % 1000 > 900 and self.fruit == 0:
                 print("Fruit appear")
                 fruit_position = random.choice(self.free_nodes)
                 Fruit(self,fruit_position[0],fruit_position[1],(self.level - 1) % len(FRUITS))
                 self.fruit = 1
                 
-            if now - self.pellet_activation > 4000 and  self.is_pellet == True:
+            if now - self.pellet_activation > 6000 and  self.is_pellet == True:
                 self.is_pellet = False
                 self.p_ch_index = 0
             
-           
-            self.events()
+            if not self.game_over:
+                self.events()
             self.update()
             self.draw()
 
@@ -211,9 +227,7 @@ class Game:
         sys.exit()
 
     def update(self):
-        # update portion of the game loop
-        # self.all_sprites.update()
-        
+        # update portion of the game loop    
         self.coins.update()
         self.pellets.update()
         self.walls.update()
@@ -240,9 +254,11 @@ class Game:
             seconds = str(self.seconds)
         self.draw_text("Timer :", self.tilesize, WHITE, self.GRIDWIDTH // 2 * self.tilesize, 3 * self.tilesize)
         self.draw_text(minutes +":" + seconds, self.tilesize, WHITE, (self.GRIDWIDTH // 2 + 3) * self.tilesize, 3 * self.tilesize)
+        self.draw_text("Level :", self.tilesize, WHITE, (self.GRIDWIDTH - len(self.map_data[0])) // 2 * self.tilesize + 100, 3 * self.tilesize )
+        self.draw_text(str(self.level), self.tilesize, WHITE, (self.GRIDWIDTH - len(self.map_data[0])) // 2 * self.tilesize + 150, 3 * self.tilesize)
         self.draw_text("Score :", self.tilesize, WHITE, (self.GRIDWIDTH - len(self.map_data[0])) // 2 * self.tilesize, 3 * self.tilesize)
         self.draw_text(str(self.score), self.tilesize, WHITE, ((self.GRIDWIDTH - len(self.map_data[0])) // 2 + 5) * self.tilesize, 3 * self.tilesize)
-        self.draw_text("Lifes :", self.tilesize, WHITE, ((self.GRIDWIDTH - len(self.map_data[0])) // 2 ) * self.tilesize, ((self.GRIDHEIGHT - len(self.map_data) + 4)) * self.tilesize)
+        self.draw_text("Lifes :", self.tilesize, WHITE, ((self.GRIDHEIGHT - len(self.map_data[0])) // 2 ) * self.tilesize, ((self.GRIDHEIGHT - len(self.map_data) + 4)) * self.tilesize)
         
     def draw(self):
         pg.display.set_caption("{:.2f}".format(self.clock.get_fps()))
@@ -256,7 +272,7 @@ class Game:
                 y = ((self.GRIDHEIGHT - len(self.map_data) + 4) * self.tilesize) 
                 pg.draw.rect(self.screen,BLACK,(x,y,self.tilesize,self.tilesize))
 
-        # self.path_draw(self.ghost.path)
+        # self.path_draw(self.ghosts.path)
         
         pg.display.flip()
 
@@ -265,10 +281,11 @@ class Game:
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 self.quit()
-            if event.type == pg.KEYDOWN:
+            if event.type == pg.KEYDOWN :
                 if event.key == pg.K_ESCAPE:
                     self.quit()
                 self.all_sprites.update()
+
                 if event.key == pg.K_LEFT:
                     self.swap(0,90)
                     # self.player.rot = 90
@@ -282,6 +299,7 @@ class Game:
                 if event.key == pg.K_DOWN:
                     self.swap(2,180)
                     # self.player.rot = 180
+                
 
     def swap(self, dir ,rot):
         if self.player.previous_key == -1 :
@@ -343,9 +361,6 @@ class Game:
         self.ghosts = varset.get_value("ghosts")
         self.ghost_speed = varset.get_value("ghost_speed")
         self.volume = varset.get_value("volume")/100
-        if self.speed != PLAYER_SPEED:
-            self.FPS = 100
-
         # pg.display.flip()
         # self.wait_for_key()
 
@@ -356,7 +371,7 @@ class Game:
 
 # create the game object
 g = Game()
-g.show_start_screen()
+# g.show_start_screen()
 while True:
     if g.life_counter == -1:
         break

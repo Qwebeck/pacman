@@ -35,9 +35,9 @@ BLINKY = 'red_ghost.png'
 PINKY='pinky.png'
 INKY='inky.png'
 CLYDE='clyde.png'
-GHOST_SPEED = 70
+GHOST_SPEED = 60
 
 
 # GRID_SCALE = (int((self.GRIDWIDTH-map_len)/2),5) #0 -col 1 - row
 TILESIZE = 14
-WALLS=['hor.png','vert.png','l_end.png','r_end.png','lb_corner.png','rb_corner.png','l_corner.png','r_corner.png']
+WALLS=['hor.png','vert.png','l_end.png','r_end.png','lb_corner.png','rb_corner.png','l_corner.png','r_corner.png','door.png']

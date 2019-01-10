@@ -7,6 +7,8 @@ def maze_transform(maze,map):
             elif tile =='G':
                 el_row.append('G')
             #     # pass# print("Ghost :",(row,col))
+            elif tile =='D':
+                el_row.append('D')
             elif tile =='p':
                 #pinky
                 el_row.append('p')
@@ -56,33 +58,35 @@ def maze_transform(maze,map):
     return player_coordinates
  
 def breadth_search(maze,start,end):
-    
-    wall_arr=['C','V','N','B','F','J','M']
-    frontier = [start]
-    visited = {start:None}
-    while frontier:
-        # print(frontier)
-        current = frontier[0]
-        frontier.pop(0)
-        for new_position in [(0, -1), (0, 1), (-1, 0),(1, 0)]:
-            new_node_r = new_position[0] + current[0]
-            new_node_c = new_position[1] + current[1]
-            
-            if len(maze)>new_node_r >= 0 and len(maze[0])>new_node_c >= 0 and (new_node_r,new_node_c) not in visited and maze[new_node_r][new_node_c] != 1 and maze[new_node_r][new_node_c] != 'O' and maze[new_node_r][new_node_c] not in wall_arr: 
-                new_node = new_position[0] + current[0],new_position[1] + current[1]
-                # print(current,"------------>",new_node)
-                visited[new_node] = current
-                frontier.append(new_node)
-                if new_node == end :
-                    break
-    # print(visited)
-    current = end
-    path = []
-    while current != None:
-            path.append(current)
-            current = visited[current]
-       
-    return path[::-1]
+    try:
+        wall_arr=['C','V','N','B','F','J','M']
+        frontier = [start]
+        visited = {start:None}
+        while frontier:
+            # print(frontier)
+            current = frontier[0]
+            frontier.pop(0)
+            for new_position in [(0, -1), (0, 1), (-1, 0),(1, 0)]:
+                new_node_r = new_position[0] + current[0]
+                new_node_c = new_position[1] + current[1]
+                
+                if len(maze)>new_node_r >= 0 and len(maze[0])>new_node_c >= 0 and (new_node_r,new_node_c) not in visited and maze[new_node_r][new_node_c] != 1 and maze[new_node_r][new_node_c] != 'O' and maze[new_node_r][new_node_c] not in wall_arr: 
+                    new_node = new_position[0] + current[0],new_position[1] + current[1]
+                    # print(current,"------------>",new_node)
+                    visited[new_node] = current
+                    frontier.append(new_node)
+                    if new_node == end :
+                        break
+        # print(visited)
+        current = end
+        path = []
+        while current != None:
+                path.append(current)
+                current = visited[current]
+        
+        return path[::-1]
+    except KeyError:
+        print("Error")
 
 
 
