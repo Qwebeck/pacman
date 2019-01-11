@@ -91,9 +91,9 @@ def ghost_house_area(maze , ghost_house):
 
 def breadth_search(maze,start,end, runnig = None):
     try:
+        print("Called")
         wall_arr=['C','V','N','B','F','J','M','R','U']
         if runnig:
-            print("running")
             wall_arr.append('P')
         frontier = [start]
         visited = {start:None}

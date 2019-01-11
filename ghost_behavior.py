@@ -33,7 +33,7 @@ def clyde_beh(g_pos,p_pos):
     # print("Player position :",p_pos)
     # print("Substraction :",(g_pos[0] - p_pos[0]),(p_pos[1] - g_pos[1]) )
     # print("Distance : ",sqrt((g_pos[0] - p_pos[0])**2 + (p_pos[1] - g_pos[1])**2))
-    if sqrt((g_pos[0] - p_pos[0])**2 + (p_pos[1] - g_pos[1])**2)<8:
+    if sqrt((g_pos[0] - p_pos[0])**2 + (p_pos[1] - g_pos[1])**2)<5:
             #distance between clyde and player is lesser than 8 , so it is time to run away
         return 0 
     else:

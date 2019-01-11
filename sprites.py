@@ -368,7 +368,8 @@ class Blinky(Ghost):
             try:
                 self.following()
             except KeyError:
-                print("Error occured")
+                pass
+                # print("Error occured")
         
 class Pinky(Ghost):
     def __init__(self, game, x, y,path=None):
@@ -380,7 +381,7 @@ class Pinky(Ghost):
     def behaviour(self):
         map_len = len(self.game.map_data[0])
         #convert nodes with
-        print("Pinky path:", self.path)
+        # print("Pinky path:", self.path)
         self.player_now = vec(self.game.player.rect.center) // self.game.tilesize - vec(int((self.game.GRIDWIDTH-map_len)/2) , 5)
         self.ghost_now = vec(self.rect.center) // self.game.tilesize - vec(int((self.game.GRIDWIDTH-map_len)/2) , 5)
         self.adjustment()
@@ -426,14 +427,12 @@ class Pinky(Ghost):
             try:
                 self.following()
             except KeyError:
-                print("Error occured")
+                # print("Error occured")
+                pass
         elif self.game.session_time <= 1:  
             self.path = breadth_search(self.game.maze,self.ghost_now,(self.game.ghost_house[0]-1,self.game.ghost_house[1] - 3))
-            try:
-                self.following()
-            except KeyError:
-                print("Error occured")
-
+            self.following()
+           
 class Inky(Ghost):
     def __init__(self, game, x, y, path=None):
         self.image = pg.transform.scale(game.inky_img, (game.tilesize, game.tilesize))
@@ -441,7 +440,8 @@ class Inky(Ghost):
         self.rect = self.image.get_rect()
         Ghost.__init__(self,game, x, y, path)
     def behaviour(self):
-        print("Inky path:", self.path)
+        # print("Inky path:", self.path)
+        
         map_len = len(self.game.map_data[0])
         #convert nodes with
         self.player_now = vec(self.game.player.rect.center) // self.game.tilesize - vec(int((self.game.GRIDWIDTH-map_len)/2) , 5)
@@ -451,16 +451,14 @@ class Inky(Ghost):
         self.player_now = (int(self.player_now[1]),int(self.player_now[0]))
         
         if vec(self.player_now) != vec(-int((self.game.GRIDWIDTH-map_len)/2), -5) and self.game.session_time > 2:
-            print("Inkies path: ",self.path)
-            try :
-                if  self.path == 0 or len(self.path) <= 2 :
+            # print("Inkies path: ",self.path)
+
+            
+            if  self.path == 0 or len(self.path) <= 2 :
                     self.dir = dir_definer(self.game.player.speed)
                     self.dest = inky_beh(self.game.maze,self.player_now,self.dir,self.game.data_for_inky)
                     self.path = breadth_search(self.game.maze,self.ghost_now,self.dest) 
                         
-            except TypeError:
-                print("Type")
-
 
             if self.game.scatter_mode == True and self.game.p_ch_index < 2:
                self.path = breadth_search(self.game.maze,self.ghost_now,(1, len(self.game.maze[0])-2))
@@ -493,13 +491,15 @@ class Inky(Ghost):
             try:
                 self.following()
             except KeyError:
-                print("Error occured")
+                # print("Error occured")
+                pass
         elif self.game.session_time <= 2:  
             self.path = breadth_search(self.game.maze,self.ghost_now,(self.game.ghost_house[0],self.game.ghost_house[1]))
             try:
                 self.following()
             except KeyError:
-                print("Error occured")
+                # print("Error occured")
+                pass
 
 class Clyde(Ghost):
     def __init__(self, game, x, y,path=None):
@@ -519,15 +519,12 @@ class Clyde(Ghost):
         self.player_now = (int(self.player_now[1]),int(self.player_now[0]))
         
         if vec(self.player_now) != vec(-int((self.game.GRIDWIDTH-map_len)/2), -5) and self.game.session_time > 3:
-            if not clyde_beh(self.ghost_now,self.player_now) :
-                # print("Clyde should run away")
+            if not clyde_beh(self.ghost_now,self.player_now) and self.run is False :
                 self.run = True
                 self.run_activation_time = self.game.session_time
                 self.path = breadth_search(self.game.maze,self.ghost_now,(1 ,1),True)
-                print(self.path)
             
             if len(self.path) <= 2:
-               
                 self.path = breadth_search(self.game.maze,self.ghost_now,self.player_now) 
             
             # elif self.game.scatter_mode == True and self.game.p_ch_index < 2 and not self.run:
@@ -564,13 +561,12 @@ class Clyde(Ghost):
             try:
                 self.following()
             except KeyError:
-                print("Error occured")
+                # print("Error occured")
+                pass
         elif self.game.session_time <= 3:  
             self.path = breadth_search(self.game.maze,self.ghost_now,(self.game.ghost_house[0]-1,self.game.ghost_house[1] - 3))
-            try:
-                self.following()
-            except KeyError:
-                print("Error occured")
+            self.following()
+            
 
 class Wall(pg.sprite.Sprite):
     def __init__(self, game, x, y, image):
