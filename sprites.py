@@ -12,11 +12,12 @@ random.seed()
 
 
 #TODO
-#rewrite clyde
+#add high score file 
+#add animation to the menu 
 
 
 
-#add dependenciec between ghost_speed , following update time , tilesize and player speed 
+
 #print("Update")
 
 
@@ -413,7 +414,7 @@ class Pinky(Ghost):
                 self.image = pg.transform.scale(self.game.ghost_img, (self.game.tilesize, self.game.tilesize))
                 self.path = breadth_search(self.game.maze,self.ghost_now,self.game.ghost_house)
                 
-            if len(self.path) <= 3:
+            if len(self.path) <= 3 or self.path == None:
                 self.dir = dir_definer(self.game.player.speed)
                 self.dest = pinky_beh(self.game.maze,self.player_now,self.dir)
                 self.path = breadth_search(self.game.maze,self.ghost_now,self.dest) 
@@ -445,7 +446,7 @@ class Inky(Ghost):
         self.player_now = (int(self.player_now[1]),int(self.player_now[0]))
         
         if vec(self.player_now) != vec(-int((self.game.GRIDWIDTH-map_len)/2), -5) and self.game.session_time > 2:
-            
+            print("Inkies path: ",self.path)
             if self.game.scatter_mode == True and self.game.p_ch_index < 2:
                self.path = breadth_search(self.game.maze,self.ghost_now,(1, len(self.game.maze[0])-2))
             
@@ -498,6 +499,8 @@ class Clyde(Ghost):
         #convert nodes with
         self.player_now = vec(self.game.player.rect.center) // self.game.tilesize - vec(int((self.game.GRIDWIDTH-map_len)/2) , 5)
         self.ghost_now = vec(self.rect.center) // self.game.tilesize - vec(int((self.game.GRIDWIDTH-map_len)/2) , 5)
+        print("Player now: ",self.player_now )
+        print("Clyde now: ",self.ghost_now)
         self.adjustment()
         self.ghost_now = (int(self.ghost_now[1]),int(self.ghost_now[0]))
         self.player_now = (int(self.player_now[1]),int(self.player_now[0]))
@@ -607,11 +610,11 @@ class Stats(Map_Object):
         Map_Object.__init__(self, self.groups ,game, x, y)
 
 class Fruit(Map_Object):
-    def __init__(self,game, x, y , fruit,folder):
+    def __init__(self,game, x, y , fruit):
         self.groups = game.all_sprites, game.fruits
-        # self.image = pg.transform.scale(pg.image.load(path.join(game.fruit_folder, FRUITS[fruit])),
-        #                                 (game.tilesize, game.tilesize))
-        Map_Object.__init__(self, self.groups ,game, x, y,folder)
+        self.image = pg.transform.scale(pg.image.load(path.join(game.fruit_folder, FRUITS[fruit])),
+                                        (game.tilesize, game.tilesize))
+        Map_Object.__init__(self, self.groups ,game, x, y)
 
         
 
