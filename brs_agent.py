@@ -9,6 +9,10 @@ def maze_transform(maze,map):
             #     # pass# print("Ghost :",(row,col))
             elif tile =='D':
                 el_row.append('D')
+            elif tile =='R': #vertical top
+                el_row.append('R')
+            elif tile =='U': #vertical bot
+                el_row.append('U')
             elif tile =='p':
                 #pinky
                 el_row.append('p')
@@ -63,7 +67,7 @@ def ghost_house_area(maze , ghost_house):
     ghost_house_area = [ghost_house]
     index = 0
     output = [ghost_house]
-    wall_arr=['C','V','N','B','F','J','M','O','D',1]
+    wall_arr=['C','V','N','B','F','J','M','O','D','R','U',1]
     neingh = [(0, -1), (0, 1), (-1, 0),(1, 0)]
     node = maze[ghost_house_area[0][0]][ghost_house_area[0][1]]
     while index < len(maze[0]) * 2:
@@ -87,7 +91,7 @@ def ghost_house_area(maze , ghost_house):
 
 def breadth_search(maze,start,end, runnig = None):
     try:
-        wall_arr=['C','V','N','B','F','J','M']
+        wall_arr=['C','V','N','B','F','J','M','R','U']
         if runnig:
             print("running")
             wall_arr.append('P')

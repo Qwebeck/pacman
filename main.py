@@ -7,6 +7,7 @@ import thorpy as th
 from brs_agent import *
 import pytmx
 import random
+
 random.seed()
 
 #self.player.keys
@@ -77,7 +78,7 @@ class Game:
         self.running = False
         self.FPS = FPS
         self.map_data = []
-        with open(path.join(self.game_folder, 'map.txt'), 'rt') as f:
+        with open(path.join(self.game_folder, 'main_map.txt'), 'rt') as f:
             for line in f:
                 self.map_data.append(line)
         maze = []
@@ -103,12 +104,12 @@ class Game:
             self.intro.play()
         
         
-        for life in range(self.life_counter):
-                x = ((self.GRIDWIDTH - len(self.map_data[0])) // 2 + 5 + life + 0.10*life)  
-                y = ((self.GRIDHEIGHT - len(self.map_data) + 4)) 
-                Stats(self,x,y,'pacman_right.png')
+        # for life in range(self.life_counter):
+        #         x = ((self.GRIDWIDTH - len(self.map_data[0])) // 2 + 5 + life + 0.10*life)  
+        #         y = ((len(self.map_data)) + 6) 
+        #         Stats(self,x,y,'pacman_right.png')
         x = ((self.GRIDWIDTH - len(self.map_data[0]) //2 - 5))  
-        y = ((self.GRIDHEIGHT - len(self.map_data) + 4)) 
+        y = ((len(self.map_data)) + 6) 
         Stats(self,x,y,FRUITS[(self.level - 1) % len(FRUITS)],self.fruit_folder)
             
         for row in self.maze:
@@ -148,6 +149,10 @@ class Game:
                     Wall(self, col, row,WALLS[8])
                 elif self.maze[y][x] == 'M':
                     Wall(self, col, row,WALLS[3])
+                elif self.maze[y][x] == 'U':
+                    Wall(self, col, row,WALLS[9])
+                elif self.maze[y][x] == 'R':
+                    Wall(self, col, row,WALLS[10])
                 elif self.maze[y][x] == 'B':
                     Wall(self, col, row,WALLS[5])
                 elif self.maze[y][x] == 'G':
@@ -259,14 +264,14 @@ class Game:
             seconds = "0" + str(self.seconds)
         else:
             seconds = str(self.seconds)
-        self.draw_text("Timer :", self.tilesize, WHITE, self.GRIDWIDTH // 2 * self.tilesize, 3 * self.tilesize)
-        self.draw_text(minutes +":" + seconds, self.tilesize, WHITE, (self.GRIDWIDTH // 2 + 3) * self.tilesize, 3 * self.tilesize)
-        self.draw_text("Level :", self.tilesize, WHITE, (self.GRIDWIDTH - len(self.map_data[0])) // 2 * self.tilesize + 100, 3 * self.tilesize )
-        self.draw_text(str(self.level), self.tilesize, WHITE, (self.GRIDWIDTH - len(self.map_data[0])) // 2 * self.tilesize + 150, 3 * self.tilesize)
-        self.draw_text("Score :", self.tilesize, WHITE, (self.GRIDWIDTH - len(self.map_data[0])) // 2 * self.tilesize, 3 * self.tilesize)
-        self.draw_text(str(self.score), self.tilesize, WHITE, ((self.GRIDWIDTH - len(self.map_data[0])) // 2 + 5) * self.tilesize, 3 * self.tilesize)
-        self.draw_text("Lifes :", self.tilesize, WHITE, ((self.GRIDHEIGHT - len(self.map_data[0])) // 2 ) * self.tilesize, ((self.GRIDHEIGHT - len(self.map_data) + 4)) * self.tilesize)
-        
+        self.draw_text("Timer :", FONTSIZE, YELLOW,( self.GRIDWIDTH // 2   + 5 )* self.tilesize , 3 * self.tilesize, FONT_NAME)
+        self.draw_text(minutes +":" + seconds, FONTSIZE, YELLOW, (self.GRIDWIDTH // 2 + 10) * self.tilesize, 3 * self.tilesize, FONT_NAME)
+        self.draw_text("Level :", FONTSIZE, YELLOW, (self.GRIDWIDTH - len(self.map_data[0]) + 17) // 2 * self.tilesize , 3 * self.tilesize, FONT_NAME)
+        self.draw_text(str(self.level), FONTSIZE, YELLOW, (self.GRIDWIDTH - len(self.map_data[0]) + 28) // 2 * self.tilesize, 3 * self.tilesize, FONT_NAME)
+        self.draw_text("Score :", FONTSIZE, YELLOW, (self.GRIDWIDTH - len(self.map_data[0])) // 2 * self.tilesize, 3 * self.tilesize, FONT_NAME)
+        self.draw_text(str(self.score), FONTSIZE, YELLOW, ((self.GRIDWIDTH - len(self.map_data[0])) // 2 + 5) * self.tilesize, 3 * self.tilesize, FONT_NAME)
+        self.draw_text("Lifes :", FONTSIZE, YELLOW, ((self.GRIDWIDTH - len(self.map_data[0])) // 2 ) * self.tilesize, ((len(self.map_data)) + 6)  * self.tilesize, FONT_NAME)
+        self.draw_text("1" * self.life_counter, FONTSIZE, YELLOW, ((self.GRIDWIDTH - len(self.map_data[0])) // 2  + 5) * self.tilesize, ((len(self.map_data)) + 6)  * self.tilesize, PACMAN_LIFES)
     def draw(self):
         pg.display.set_caption("{:.2f}".format(self.clock.get_fps()))
         # pg.display.set_caption("{:.2f}".format(self.session_time))
@@ -285,10 +290,11 @@ class Game:
 
     def events(self):
         # catch all events here
+      
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 self.quit()
-            if event.type == pg.KEYDOWN :
+            if event.type == pg.KEYDOWN and self.game_over == False:
                 if event.key == pg.K_ESCAPE:
                     self.quit()
                 self.all_sprites.update()
@@ -318,8 +324,11 @@ class Game:
             self.player.rot, self.player.previous_rot = rot, self.player.rot
             self.player.keys, self.player.previous_key = dir, self.player.keys
             
-    def draw_text(self, text, size, color, x, y):
-        font = pg.font.Font(self.font_name, size)
+    def draw_text(self, text, size, color, x, y, font):
+        # if not number:
+        font = pg.font.Font(font, size)
+        # else :
+        #     font = pg.font.Font(self.font_name, size * 2)
         text_surface = font.render(text, True, color)
         text_rect = text_surface.get_rect()
         text_rect.topleft = (x, y)
@@ -347,10 +356,10 @@ class Game:
         e_title.set_topleft((10, 10))
         play_button = th.make_button("Play", func=th.functions.quit_menu_func)
         varset = th.VarSet()
-        varset.add("tilesize", value=TILESIZE, text="Size of objects:", limits=(8, 32))
-        varset.add("speed", value=PLAYER_SPEED, text="Speed:", limits=(10, 500))
-        varset.add("ghosts", value=GHOSTS, text="Ghosts:", limits=(0, 20))
-        varset.add("ghost_speed", value=GHOST_SPEED, text="Ghosts speed:", limits=(10, 500))
+        varset.add("tilesize", value=TILESIZE, text="Size of objects:", limits=(8, 20))
+        varset.add("speed", value=PLAYER_SPEED, text="Speed:", limits=(10, 100))
+        varset.add("ghost_speed", value=GHOST_SPEED, text="Ghosts speed:", limits=(10, 100))
+        varset.add("scatter_freq", value=10, text="Scatter mode frequency:", limits=(0, 15))
         varset.add("volume", value=self.volume * 100, text="Volume:", limits=(0, 100))
         e_options = th.ParamSetterLauncher.make([varset], "Options", "Options")
         quit_button = th.make_button("Quit",func=th.functions.quit_func)
@@ -365,9 +374,9 @@ class Game:
         self.speed = varset.get_value("speed")
         self.GRIDWIDTH = WIDTH / self.tilesize
         self.GRIDHEIGHT = HEIGHT / self.tilesize
-        self.ghosts = varset.get_value("ghosts")
         self.ghost_speed = varset.get_value("ghost_speed")
         self.volume = varset.get_value("volume")/100
+        self.scatter_frequency = varset.get_value("volume") * 1000
         # pg.display.flip()
         # self.wait_for_key()
 
