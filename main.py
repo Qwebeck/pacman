@@ -131,7 +131,7 @@ class Game:
                 elif self.maze[y][x] == 'H':
                     self.ghost_house = (row - 5,col - int((self.GRIDWIDTH-map_len)/2))
                     self.ghost_house_area = ghost_house_area(self.maze,self.ghost_house)
-                    print("Ghost house :",ghost_house_area(self.maze,self.ghost_house))
+             
                 elif self.maze[y][x] == 'P':
                     self.player = Player(self, col, row)
                 elif self.maze[y][x] == 'C':

@@ -204,13 +204,13 @@ class Ghost(pg.sprite.Sprite):
             self.game.scatter_mode = False
             self.path = breadth_search(self.game.maze,self.ghost_now,self.player_now)
 
-        elif len(self.path) <= 2 and self.game.scatter_mode != True:
+        elif ( self.path == 0 or len(self.path) <= 2 ) and self.game.scatter_mode != True:
             self.path = breadth_search(self.game.maze,self.ghost_now,self.player_now)  
 
-        if len(self.path) <= 1 and self.game.is_pellet == False and self.game.session_time < 20:
-            return 0
+        # if len(self.path) <= 1 and self.game.is_pellet == False and self.game.session_time < 20:
+        #     return 0
 
-        elif len(self.path) <= 1 and self.game.is_pellet == False:
+        if len(self.path) <= 1 and self.game.is_pellet == False:
             self.game_over()
             return 0
 
@@ -386,7 +386,7 @@ class Pinky(Ghost):
         self.player_now = (int(self.player_now[1]),int(self.player_now[0]))
         
         if vec(self.player_now) != vec(-int((self.game.GRIDWIDTH-map_len)/2), -5) and self.game.session_time > 1:
-            print("Pinkie's path: ",self.path)
+            # print("Pinkie's path: ",self.path)
             if self.game.scatter_mode == True and self.game.p_ch_index < 2:
                self.path = breadth_search(self.game.maze,self.ghost_now,(1, 1))
             
@@ -414,7 +414,7 @@ class Pinky(Ghost):
                 self.image = pg.transform.scale(self.game.ghost_img, (self.game.tilesize, self.game.tilesize))
                 self.path = breadth_search(self.game.maze,self.ghost_now,self.game.ghost_house)
                 
-            if len(self.path) <= 3 or self.path == None:
+            if self.path == 0 or len(self.path) <= 3 or self.path == None:
                 self.dir = dir_definer(self.game.player.speed)
                 self.dest = pinky_beh(self.game.maze,self.player_now,self.dir)
                 self.path = breadth_search(self.game.maze,self.ghost_now,self.dest) 
@@ -446,9 +446,11 @@ class Inky(Ghost):
         self.player_now = (int(self.player_now[1]),int(self.player_now[0]))
         
         if vec(self.player_now) != vec(-int((self.game.GRIDWIDTH-map_len)/2), -5) and self.game.session_time > 2:
-            print("Inkies path: ",self.path)
+            # print("Inkies path: ",self.path)
             if self.game.scatter_mode == True and self.game.p_ch_index < 2:
                self.path = breadth_search(self.game.maze,self.ghost_now,(1, len(self.game.maze[0])-2))
+               if self.path == 0:
+                   print("erro ")
             
             elif self.game.is_pellet == False and vec(self.ghost_now) == vec(self.path[1]):
                 self.speed = self.game.ghost_speed 
@@ -464,6 +466,8 @@ class Inky(Ghost):
                 self.game.ghost_img = pg.image.load(path.join(self.game.img_folder, 'dead_gh.png')).convert_alpha()
                 self.image = pg.transform.scale(self.game.ghost_img, (self.game.tilesize, self.game.tilesize))
                 self.path = breadth_search(self.game.maze,self.ghost_now,self.game.ghost_house)
+                if self.path == 0:
+                   print("error ")
 
             elif self.game.is_pellet == True and self.eated == False:
                 self.speed = self.speed * 0.5
@@ -471,10 +475,12 @@ class Inky(Ghost):
                 self.image = pg.transform.scale(self.game.ghost_img, (self.game.tilesize, self.game.tilesize))
                 self.path = breadth_search(self.game.maze,self.ghost_now,self.game.ghost_house)
             try :
-                if len(self.path) <= 3:
+                if  self.path == 0 or len(self.path) <= 3 :
                     self.dir = dir_definer(self.game.player.speed)
                     self.dest = inky_beh(self.game.maze,self.player_now,self.dir,self.game.data_for_inky)
                     self.path = breadth_search(self.game.maze,self.ghost_now,self.dest) 
+                    if self.path == 0:
+                        print("errno ")
             except TypeError:
                 print("Type")
             try:
@@ -510,7 +516,8 @@ class Clyde(Ghost):
                 print("Clyde should run away")
                 self.run = True
                 self.run_activation_time = self.game.session_time
-                print(self.path)
+                self.path = breadth_search(self.game.maze,self.ghost_now,(1 ,1),True)
+                # print(self.path)
 
             
             # elif self.game.scatter_mode == True and self.game.p_ch_index < 2 and not self.run:

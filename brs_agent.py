@@ -119,6 +119,8 @@ def breadth_search(maze,start,end, runnig = None):
         return path[::-1]
     except KeyError:
         print("Error")
+        return 0 
+        #problem
 
 
 
