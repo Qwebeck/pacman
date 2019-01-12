@@ -22,7 +22,7 @@ TITLE = "Pacman game"
 BGCOLOR = BLACK
 #should grow with growth of pixels per second 
 IGNORE_SPACE = 4
-
+LOGIN = "Bohdan"
 
 #player settings
 PLAYER_SPEED = 80

@@ -89,12 +89,14 @@ def ghost_house_area(maze , ghost_house):
     return output
         
 
-def breadth_search(maze,start,end, runnig = None):
+def breadth_search(maze,start,end, runnig = None , emergency = None):
     try:
         print("Called")
-        wall_arr=['C','V','N','B','F','J','M','R','U']
+        wall_arr=['C','V','N','B','F','J','M','R','U',1 ,'O']
         if runnig:
             wall_arr.append('P')
+        if emergency:
+           wall_arr=['C','V','N','B','J','M','R','U','O']
         frontier = [start]
         visited = {start:None}
         while frontier:
@@ -105,7 +107,7 @@ def breadth_search(maze,start,end, runnig = None):
                 new_node_r = new_position[0] + current[0]
                 new_node_c = new_position[1] + current[1]
                 
-                if len(maze)>new_node_r >= 0 and len(maze[0])>new_node_c >= 0 and (new_node_r,new_node_c) not in visited and maze[new_node_r][new_node_c] != 1 and maze[new_node_r][new_node_c] != 'O' and maze[new_node_r][new_node_c] not in wall_arr: 
+                if len(maze)>new_node_r >= 0 and len(maze[0])>new_node_c >= 0 and (new_node_r,new_node_c) not in visited and maze[new_node_r][new_node_c] not in wall_arr: 
                     new_node = new_position[0] + current[0],new_position[1] + current[1]
                     # print(current,"------------>",new_node)
                     visited[new_node] = current
@@ -115,7 +117,8 @@ def breadth_search(maze,start,end, runnig = None):
         # print(visited)
         current = end
         path = []
-        wall_arr.pop()
+        if runnig:
+            wall_arr.pop()
         while current != None:
                 path.append(current)
                 current = visited[current]

@@ -25,14 +25,15 @@ class Game:
         pg.display.set_caption(TITLE)
         self.clock = pg.time.Clock()
         pg.key.set_repeat(500, 100)
-        self.load_data()
+        self.high_scores = []
+        
         self.score = 0
         self.minutes = 0
         self.seconds = 0
         self.session_time = 0
         self.font_name = pg.font.match_font(FONT_NAME)
         self.running = True
-       
+        self.login = LOGIN
         #timer variable
         self.last_update = 0
         self.last_scatter_update = 0
@@ -48,6 +49,9 @@ class Game:
         self.free_nodes = []
         self.picked = 0 # check for fruits 
         self.scatter_frequency = 5000
+        self.ghost_counter = 1
+        self.load_data()
+        
 
     def load_data(self):
         self.volume = 0.1
@@ -78,9 +82,20 @@ class Game:
         self.running = False
         self.FPS = FPS
         self.map_data = []
+        self.high_scores = []
+        # print(self.high_scores)
         with open(path.join(self.game_folder, 'main_map.txt'), 'rt') as f:
             for line in f:
                 self.map_data.append(line)
+        with open(path.join(self.game_folder, 'high_scores.txt'), 'r') as file:
+            for line in file:
+                print(line)
+                try: 
+                    self.high_scores.append(int(line[:-1]))
+                except:
+                    pass
+        print("high_Scores ",self.high_scores)
+        self.high_scores.sort(reverse = True)
         maze = []
         self.player_cords = maze_transform(maze,self.map_data)
         self.maze = maze
@@ -98,8 +113,10 @@ class Game:
         self.pellets = pg.sprite.Group()
         self.fruits= pg.sprite.Group()
         self.data_for_inky = 0
-        self.scatter_mode = True
+        self.scatter_mode = False
         self.game_over = False
+        self.fruit = 0
+        self.pellet_index = 0
         if self.life_counter == 3:
             self.intro.play()
         
@@ -162,22 +179,22 @@ class Game:
                     # print("Ghost :",ghost_cord)
                     path = breadth_search(self.maze,ghost_cord,self.player_cords)
                     self.ghost = Blinky(self,col,row,path)
-                elif self.maze[y][x] == 'p':
-                    # print(self.maze)
-                    ghost_cord = (row - 5,col - int((self.GRIDWIDTH-map_len)/2))
-                    path = breadth_search(self.maze,ghost_cord,(1,1))
-                    Pinky(self,col,row,path)
-                elif self.maze[y][x] == 'i':
-                    # print(self.maze)
-                    ghost_cord = (row - 5,col - int((self.GRIDWIDTH-map_len)/2))
-                    path = breadth_search(self.maze,ghost_cord ,(len(self.maze) - 2, 1))
-                    Inky(self,col,row,path)
-                elif self.maze[y][x] == 'c':
-                    # print(self.maze)
-                    ghost_cord = (row - 5,col - int((self.GRIDWIDTH-map_len)/2))
-                    path = breadth_search(self.maze,ghost_cord, (ghost_cord[0],ghost_cord[1]-1))
-                    Clyde(self,col,row,path)
-                
+            #     elif self.maze[y][x] == 'p':
+            #         # print(self.maze)
+            #         ghost_cord = (row - 5,col - int((self.GRIDWIDTH-map_len)/2))
+            #         path = breadth_search(self.maze,ghost_cord,(1,1))
+            #         Pinky(self,col,row,path)
+            #     elif self.maze[y][x] == 'i':
+            #         # print(self.maze)
+            #         ghost_cord = (row - 5,col - int((self.GRIDWIDTH-map_len)/2))
+            #         path = breadth_search(self.maze,ghost_cord ,(len(self.maze) - 2, 1))
+            #         Inky(self,col,row,path)
+            #     elif self.maze[y][x] == 'c':
+            #         # print(self.maze)
+            #         ghost_cord = (row - 5,col - int((self.GRIDWIDTH-map_len)/2))
+            #         path = breadth_search(self.maze,ghost_cord, (ghost_cord[0],ghost_cord[1]-1))
+            #         Clyde(self,col,row,path)
+            # self.corner_set = [(1,1),(len(self.maze[0]) - 1, 1), (1,len(self.maze) - 1),(len(self.maze[0]) - 1, len(self.maze) - 1)]
                 
     def path_draw(self,path):
         map_len = len(self.map_data[0])
@@ -218,10 +235,12 @@ class Game:
             # print(self.free_nodes)
             if self.score % 1000 > 900 and self.fruit == 0:
                 print("Fruit appear")
-                fruit_position = random.choice(self.free_nodes)
-                Fruit(self,fruit_position[0],fruit_position[1],(self.level - 1) % len(FRUITS))
-                self.fruit = 1
-                
+                try:
+                    fruit_position = random.choice(self.free_nodes)
+                    Fruit(self,fruit_position[0],fruit_position[1],(self.level - 1) % len(FRUITS))
+                    self.fruit = 1
+                except:
+                    pass
             if now - self.pellet_activation > 6000 and  self.is_pellet == True:
                 self.is_pellet = False
                 self.p_ch_index = 0
@@ -239,12 +258,14 @@ class Game:
         sys.exit()
 
     def update(self):
-        # update portion of the game loop    
+        # update portion of the game loop   
+       
         self.coins.update()
         self.pellets.update()
         self.walls.update()
         self.ghosts.update()
         self.player_group.update()
+
        
         
         # self.draw_walls()
@@ -272,6 +293,22 @@ class Game:
         self.draw_text(str(self.score), FONTSIZE, YELLOW, ((self.GRIDWIDTH - len(self.map_data[0])) // 2 + 5) * self.tilesize, 3 * self.tilesize, FONT_NAME)
         self.draw_text("Lifes :", FONTSIZE, YELLOW, ((self.GRIDWIDTH - len(self.map_data[0])) // 2 ) * self.tilesize, ((len(self.map_data)) + 6)  * self.tilesize, FONT_NAME)
         self.draw_text("1" * self.life_counter, FONTSIZE, YELLOW, ((self.GRIDWIDTH - len(self.map_data[0])) // 2  + 5) * self.tilesize, ((len(self.map_data)) + 6)  * self.tilesize, PACMAN_LIFES)
+        self.draw_text("High scores:", 32 , YELLOW, WIDTH - 15 * self.tilesize , 5 * self.tilesize, FONT_NAME)
+        for i in range (5):
+            print(self.high_scores)
+            try :
+                if i >= len(self.high_scores):
+                    break
+                self.draw_text(str(i + 1) + '.' +  str(self.high_scores[i]), 32 , YELLOW, WIDTH - 15 * self.tilesize , ((i + 1) * 2 + 5) * self.tilesize, FONT_NAME)
+            except TypeError:
+                pass
+
+        if self.player.picked_power != 0 and self.session_time - self.player.picked_power_time < 3:
+            # print("Called picked item function ")
+            self.draw_text("+" + str(self.player.picked_power),int(self.tilesize * 1.5) ,YELLOW,self.player.picked_power_pos[0] * self.tilesize + self.tilesize / 4 ,self.player.picked_power_pos[1] * self.tilesize + self.tilesize/4,FONT_NAME)
+        elif self.session_time - self.player.picked_power_time > 3:
+            self.player.picked_power = 0
+    
     def draw(self):
         pg.display.set_caption("{:.2f}".format(self.clock.get_fps()))
         # pg.display.set_caption("{:.2f}".format(self.session_time))
@@ -280,8 +317,8 @@ class Game:
         self.all_sprites.draw(self.screen)
         self.drawing_of_changable()
         if self.picked == 1:
-                x = ((self.GRIDWIDTH - len(self.map_data[0]) //2 - 5) * self.tilesize)  
-                y = ((self.GRIDHEIGHT - len(self.map_data) + 4) * self.tilesize) 
+                x = ((self.GRIDWIDTH - len(self.map_data[0]) //2 - 5))  
+                y = ((len(self.map_data)) + 6) 
                 pg.draw.rect(self.screen,BLACK,(x,y,self.tilesize,self.tilesize))
 
         # self.path_draw(self.ghost_house_area)
@@ -313,7 +350,6 @@ class Game:
                     self.swap(2,180)
                     # self.player.rot = 180
                 
-
     def swap(self, dir ,rot):
         if self.player.previous_key == -1 :
             self.player.keys = dir
@@ -334,63 +370,95 @@ class Game:
         text_rect.topleft = (x, y)
         self.screen.blit(text_surface, text_rect)
 
-    # def wait_for_key(self):
-    #     waiting = True
-    #     while waiting:
-    #         self.clock.tick(self.FPS)
-    #         # for event in pg.event.get():
-    #             # self.menu.react(event)
-    #             # print(self.slider.get_value())
-    #             # self.tilesize = int(self.slider.get_value())
-    #         for event in pg.event.get():
-    #             if event.type == pg.QUIT:
-    #                 waiting = False
-    #                 self.running = False
-    #             if event.type == pg.KEYUP:
-    #                 waiting = False
+    def wait_for_key(self):
+        waiting = True
+        while waiting:
+            self.clock.tick(self.FPS)
+            # for event in pg.event.get():
+                # self.menu.react(event)
+                # print(self.slider.get_value())
+                # self.tilesize = int(self.slider.get_value())
+            for event in pg.event.get():
+                if event.type == pg.QUIT :
+                    waiting = False
+                    self.quit()
+                    
+                if event.type == pg.KEYUP:
+                    waiting = False
 
     def show_start_screen(self):
         application = th.Application(size=(WIDTH, HEIGHT), caption="Hello world")
-        e_title = th.make_text("Pacman", font_size=20, font_color=WHITE)
+        
+        e_title = th.make_text("Pacman", font_size=40, font_color=WHITE )
+        e_title.set_font(path.join(self.game_folder,FONT_NAME))
+        # inserter = th.Inserter.make(name="Inserter: ", value=" ")
         # e_title.center()
         e_title.set_topleft((10, 10))
         play_button = th.make_button("Play", func=th.functions.quit_menu_func)
+    
         varset = th.VarSet()
         varset.add("tilesize", value=TILESIZE, text="Size of objects:", limits=(8, 20))
-        varset.add("speed", value=PLAYER_SPEED, text="Speed:", limits=(10, 100))
+        # varset.add("speed", value=PLAYER_SPEED, text="Speed:", limits=(10, 100))
         varset.add("ghost_speed", value=GHOST_SPEED, text="Ghosts speed:", limits=(10, 100))
         varset.add("scatter_freq", value=10, text="Scatter mode frequency:", limits=(0, 15))
         varset.add("volume", value=self.volume * 100, text="Volume:", limits=(0, 100))
+        # varset.add("login",value = LOGIN, text ="Login :")
         e_options = th.ParamSetterLauncher.make([varset], "Options", "Options")
         quit_button = th.make_button("Quit",func=th.functions.quit_func)
-        elements = [e_title, play_button, e_options, quit_button]
-        e_background = th.Background.make(color=DARKGREY, elements=elements)
+        elements = [ e_title , play_button, e_options, quit_button]
+        e_background = th.Background.make(color=BLACK, elements=elements , image=path.join(self.img_folder,("bg.jpg")))
         th.store(e_background, elements)
         th.store(e_background)
         menu = th.Menu(e_background)  # create a menu on top of the background
+        
+       
         menu.play()  # launch the menu
+        
+        
         pg.display.flip()
         self.tilesize = varset.get_value("tilesize")
-        self.speed = varset.get_value("speed")
+        # self.speed = varset.get_value("speed")
         self.GRIDWIDTH = WIDTH / self.tilesize
         self.GRIDHEIGHT = HEIGHT / self.tilesize
         self.ghost_speed = varset.get_value("ghost_speed")
         self.volume = varset.get_value("volume")/100
         self.scatter_frequency = varset.get_value("volume") * 1000
+        # self.login = varset.get_value("login")
         # pg.display.flip()
         # self.wait_for_key()
 
     def show_go_screen(self):
-        pass
+        file = open("high_scores.txt","a")
+        file.write(str(self.score))
+        file.write('\n')
+        file.close()
+
+        self.screen.fill(BLACK)
+        self.draw_text("Your score is :" + str(self.score),30,YELLOW, self.tilesize, 10 * self.tilesize,FONT_NAME)
+        if len(self.high_scores) == 0:
+           self.draw_text("You set new record :" + str(self.score),30,YELLOW, 5 * self.tilesize, 15 * self.tilesize,FONT_NAME)
+        elif int(self.score) - int(self.high_scores[0]) > 0:
+           self.draw_text("You set new record.Also it is better than previous on :" + str(int(self.score) - int(self.high_scores[0])) + " points",30,YELLOW, 5 * self.tilesize, 15 * self.tilesize,FONT_NAME)
+        else:
+            self.draw_text("You was close.To be the best you nedd only " + str(int(self.high_scores[0]) - int(self.score)) + " points.",30,YELLOW, 5 * self.tilesize, 15 * self.tilesize,FONT_NAME)
+            self.draw_text("Keep trying",30,YELLOW, 5 * self.tilesize, 20 * self.tilesize,FONT_NAME)     
+        self.draw_text("Press any button to return to the menu  ",30,YELLOW, 15 * self.tilesize, 25 * self.tilesize,FONT_NAME)
+        pg.display.flip()
+        self.free_nodes = []
+        self.wait_for_key()
+        self.show_start_screen()
 
 
 
 # create the game object
 g = Game()
-# g.show_start_screen()
+g.show_start_screen()
 while True:
     if g.life_counter == -1:
-        break
+        g.load_data()
+        g.new()
+        g.show_go_screen()
+        # break
     
     g.new()
     g.run()
