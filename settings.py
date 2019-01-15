@@ -25,7 +25,7 @@ IGNORE_SPACE = 4
 LOGIN = "Bohdan"
 
 #player settings
-PLAYER_SPEED = 80
+PLAYER_SPEED = 85
 #animation settings
 ANIMATION_SPEED = 40
 PACMAN_IMAGE = ['pacman_top.png', 'animation_pacman_top.png', 'circle.png']
@@ -36,10 +36,10 @@ BOB_SPEED = 0.3
 #mob settings
 GHOSTS = 5
 GHOST_IMAGE = 'red_ghost.png'
-BLINKY = 'red_ghost.png'
-PINKY='pinky.png'
-INKY='inky.png'
-CLYDE='clyde.png'
+BLINKY = ['red_ghost.png','blinky2.png']
+PINKY=['pinky.png','pinky2.png']
+INKY=['inky.png','inky2.png']
+CLYDE=['clyde.png','clyde2.png']
 GHOST_SPEED = 60
 
 

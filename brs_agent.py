@@ -72,7 +72,7 @@ def ghost_house_area(maze , ghost_house):
     node = maze[ghost_house_area[0][0]][ghost_house_area[0][1]]
     while index < len(maze[0]) * 2:
             # print(frontier)
-            print(ghost_house_area)
+            # print(ghost_house_area)
             current = ghost_house_area[0]
             ghost_house_area.pop(0)
             for new_position in [(0, -1), (0, 1), (-1, 0),(1, 0)]:

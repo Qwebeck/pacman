@@ -48,8 +48,11 @@ class Game:
         self.game_over = False
         self.free_nodes = []
         self.picked = 0 # check for fruits 
-        self.scatter_frequency = 5000
-        self.ghost_counter = 1
+        self.scatter_frequency = 20000
+        self.ghost_counter = 0
+        self.unlucky_pellet = random.randint(1,3)
+        self.picked_pellets_number = 0
+        self.hell_mode = False
         self.load_data()
         
 
@@ -63,15 +66,17 @@ class Game:
 
         # print("Image folder in main:",self.img_folder)
         self.player_img = pg.image.load(path.join(self.img_folder, PACMAN_IMAGE[2])).convert_alpha()
-        self.blinky_img = pg.image.load(path.join(self.img_folder, BLINKY)).convert_alpha()
-        self.pinky_img = pg.image.load(path.join(self.img_folder, PINKY)).convert_alpha()
-        self.inky_img = pg.image.load(path.join(self.img_folder, INKY)).convert_alpha()
-        self.clyde_img = pg.image.load(path.join(self.img_folder, CLYDE)).convert_alpha()
+        self.blinky_img = pg.image.load(path.join(self.img_folder, BLINKY[0])).convert_alpha()
+        self.pinky_img = pg.image.load(path.join(self.img_folder, PINKY[0])).convert_alpha()
+        self.inky_img = pg.image.load(path.join(self.img_folder, INKY[0])).convert_alpha()
+        self.clyde_img = pg.image.load(path.join(self.img_folder, CLYDE[0])).convert_alpha()
         self.eat_coin = pg.mixer.Sound(path.join(self.sound_folder,'pacman_chomp.wav'))
         self.intro = pg.mixer.Sound(path.join(self.sound_folder,'pacman_beginning.wav'))
         self.death_sound = pg.mixer.Sound(path.join(self.sound_folder,'pacman_death.wav'))
         self.eat_fruit_sound = pg.mixer.Sound(path.join(self.sound_folder,'pacman_eatfruit.wav'))
         self.eat_ghost = pg.mixer.Sound(path.join(self.sound_folder,'pacman_eatghost.wav'))  
+        pg.mixer.music.load(path.join(self.sound_folder,'Airport-lounge-music-for-airports.mp3'))  
+        pg.mixer.music.set_volume(0.05)
         self.intro.set_volume(self.volume) 
         self.eat_coin.set_volume(self.volume)
         self.intro.set_volume(self.volume)
@@ -89,12 +94,12 @@ class Game:
                 self.map_data.append(line)
         with open(path.join(self.game_folder, 'high_scores.txt'), 'r') as file:
             for line in file:
-                print(line)
+                # print(line)
                 try: 
                     self.high_scores.append(int(line[:-1]))
                 except:
                     pass
-        print("high_Scores ",self.high_scores)
+        # print("high_Scores ",self.high_scores)
         self.high_scores.sort(reverse = True)
         maze = []
         self.player_cords = maze_transform(maze,self.map_data)
@@ -129,8 +134,8 @@ class Game:
         y = ((len(self.map_data)) + 6) 
         Stats(self,x,y,FRUITS[(self.level - 1) % len(FRUITS)],self.fruit_folder)
             
-        for row in self.maze:
-            print(row)
+        # for row in self.maze:
+        #     print(row)
         # self.walls_on_map = []
         map_len = len(self.map_data[0])
         for y in range(len(self.maze)):
@@ -179,22 +184,22 @@ class Game:
                     # print("Ghost :",ghost_cord)
                     path = breadth_search(self.maze,ghost_cord,self.player_cords)
                     self.ghost = Blinky(self,col,row,path)
-            #     elif self.maze[y][x] == 'p':
-            #         # print(self.maze)
-            #         ghost_cord = (row - 5,col - int((self.GRIDWIDTH-map_len)/2))
-            #         path = breadth_search(self.maze,ghost_cord,(1,1))
-            #         Pinky(self,col,row,path)
-            #     elif self.maze[y][x] == 'i':
-            #         # print(self.maze)
-            #         ghost_cord = (row - 5,col - int((self.GRIDWIDTH-map_len)/2))
-            #         path = breadth_search(self.maze,ghost_cord ,(len(self.maze) - 2, 1))
-            #         Inky(self,col,row,path)
-            #     elif self.maze[y][x] == 'c':
-            #         # print(self.maze)
-            #         ghost_cord = (row - 5,col - int((self.GRIDWIDTH-map_len)/2))
-            #         path = breadth_search(self.maze,ghost_cord, (ghost_cord[0],ghost_cord[1]-1))
-            #         Clyde(self,col,row,path)
-            # self.corner_set = [(1,1),(len(self.maze[0]) - 1, 1), (1,len(self.maze) - 1),(len(self.maze[0]) - 1, len(self.maze) - 1)]
+                elif self.maze[y][x] == 'p':
+                    # print(self.maze)
+                    ghost_cord = (row - 5,col - int((self.GRIDWIDTH-map_len)/2))
+                    path = breadth_search(self.maze,ghost_cord,(1,1))
+                    Pinky(self,col,row,path)
+                elif self.maze[y][x] == 'i':
+                    # print(self.maze)
+                    ghost_cord = (row - 5,col - int((self.GRIDWIDTH-map_len)/2))
+                    path = breadth_search(self.maze,ghost_cord ,(len(self.maze) - 2, 1))
+                    Inky(self,col,row,path)
+                elif self.maze[y][x] == 'c':
+                    # print(self.maze)
+                    ghost_cord = (row - 5,col - int((self.GRIDWIDTH-map_len)/2))
+                    path = breadth_search(self.maze,ghost_cord, (ghost_cord[0],ghost_cord[1]-1))
+                    Clyde(self,col,row,path)
+            self.corner_set = [(1,1),(len(self.maze[0]) - 1, 1), (1,len(self.maze) - 1),(len(self.maze[0]) - 1, len(self.maze) - 1)]
                 
     def path_draw(self,path):
         map_len = len(self.map_data[0])
@@ -226,15 +231,15 @@ class Game:
                 self.scatter_frequency += 100
             
             if  now - self.last_scatter_update > self.scatter_frequency :
-                print("Scatter mode state before update:", self.scatter_mode)
+                # print("Scatter mode state before update:", self.scatter_mode)
                 self.last_scatter_update = now
                 self.scatter_frequency += 1000 
                 self.scatter_mode = not self.scatter_mode
-                print("Scatter mode activation")
-                print("Scatter mode state:", self.scatter_mode)
+                # print("Scatter mode activation")
+                # print("Scatter mode state:", self.scatter_mode)
             # print(self.free_nodes)
             if self.score % 1000 > 900 and self.fruit == 0:
-                print("Fruit appear")
+                # print("Fruit appear")
                 try:
                     fruit_position = random.choice(self.free_nodes)
                     Fruit(self,fruit_position[0],fruit_position[1],(self.level - 1) % len(FRUITS))
@@ -243,7 +248,13 @@ class Game:
                     pass
             if now - self.pellet_activation > 6000 and  self.is_pellet == True:
                 self.is_pellet = False
+                self.ghost_counter = 0
                 self.p_ch_index = 0
+                # if self.hell_mode == True:
+                #     self.hell_mode = False
+            
+            # if self.is_pellet == True and self.picked_pellets_number == self.unlucky_pellet:
+            #     self.hell_mode == True
             
             if not self.game_over:
                 self.events()
@@ -277,6 +288,9 @@ class Game:
             pg.draw.line(self.screen, LIGHTGREY, (0, y), (WIDTH, y))
 
     def drawing_of_changable(self):
+        print("Hell mode pellet",self.unlucky_pellet)
+        print("Hell mode state",self.hell_mode)
+        print("Picked pellets ", self.picked_pellets_number)
         if self.minutes < 10:
             minutes = "0" + str(self.minutes)
         else:
@@ -293,15 +307,24 @@ class Game:
         self.draw_text(str(self.score), FONTSIZE, YELLOW, ((self.GRIDWIDTH - len(self.map_data[0])) // 2 + 5) * self.tilesize, 3 * self.tilesize, FONT_NAME)
         self.draw_text("Lifes :", FONTSIZE, YELLOW, ((self.GRIDWIDTH - len(self.map_data[0])) // 2 ) * self.tilesize, ((len(self.map_data)) + 6)  * self.tilesize, FONT_NAME)
         self.draw_text("1" * self.life_counter, FONTSIZE, YELLOW, ((self.GRIDWIDTH - len(self.map_data[0])) // 2  + 5) * self.tilesize, ((len(self.map_data)) + 6)  * self.tilesize, PACMAN_LIFES)
-        self.draw_text("High scores:", 32 , YELLOW, WIDTH - 15 * self.tilesize , 5 * self.tilesize, FONT_NAME)
-        for i in range (5):
-            print(self.high_scores)
-            try :
-                if i >= len(self.high_scores):
-                    break
-                self.draw_text(str(i + 1) + '.' +  str(self.high_scores[i]), 32 , YELLOW, WIDTH - 15 * self.tilesize , ((i + 1) * 2 + 5) * self.tilesize, FONT_NAME)
-            except TypeError:
-                pass
+        self.draw_text("High score:", 32 , YELLOW, WIDTH - 15 * self.tilesize , 5 * self.tilesize, FONT_NAME)
+        if self.score < self.high_scores[0]:
+             self.draw_text(str(self.high_scores[0]), 32 , YELLOW, WIDTH - 15 * self.tilesize , 7 * self.tilesize, FONT_NAME)
+        else:
+             self.draw_text(str(self.score), 32 , YELLOW, WIDTH - 15 * self.tilesize , 7 * self.tilesize, FONT_NAME)
+
+        if self.picked_pellets_number == self.unlucky_pellet:
+            self.draw_text("Sorry ,you picked a wrong pellet ", FONTSIZE , YELLOW, ((self.GRIDWIDTH - len(self.map_data[0])) // 2 ) * self.tilesize, ((len(self.map_data)) + 10)  * self.tilesize, FONT_NAME)
+            self.draw_text("Now Bilnky is faster and invisiable", FONTSIZE , YELLOW, ((self.GRIDWIDTH - len(self.map_data[0])) // 2 ) * self.tilesize, ((len(self.map_data)) + 15)  * self.tilesize, FONT_NAME)
+            self.draw_text("Pick up next pellet to stop it ", FONTSIZE , YELLOW, ((self.GRIDWIDTH - len(self.map_data[0])) // 2 ) * self.tilesize, ((len(self.map_data)) + 20)  * self.tilesize, FONT_NAME)
+        # for i in range (5):
+        #     # sprint(self.high_scores)
+        #     try :
+        #         if i >= len(self.high_scores):
+        #             break
+        #         self.draw_text(str(i + 1) + '.' +  str(self.high_scores[i]), 32 , YELLOW, WIDTH - 15 * self.tilesize , ((i + 1) * 2 + 5) * self.tilesize, FONT_NAME)
+        #     except TypeError:
+        #         pass
 
         if self.player.picked_power != 0 and self.session_time - self.player.picked_power_time < 3:
             # print("Called picked item function ")
@@ -310,7 +333,7 @@ class Game:
             self.player.picked_power = 0
     
     def draw(self):
-        pg.display.set_caption("{:.2f}".format(self.clock.get_fps()))
+        # pg.display.set_caption("{:.2f}".format(self.clock.get_fps()))
         # pg.display.set_caption("{:.2f}".format(self.session_time))
         self.screen.fill(BGCOLOR)
         # self.draw_grid()
@@ -387,9 +410,9 @@ class Game:
                     waiting = False
 
     def show_start_screen(self):
-        application = th.Application(size=(WIDTH, HEIGHT), caption="Hello world")
-        
-        e_title = th.make_text("Pacman", font_size=40, font_color=WHITE )
+        application = th.Application(size=(WIDTH, HEIGHT), caption="Hello pacman")
+        pg.mixer.music.play(loops = - 1)
+        e_title = th.make_text("Pacman", font_size=40, font_color=YELLOW )
         e_title.set_font(path.join(self.game_folder,FONT_NAME))
         # inserter = th.Inserter.make(name="Inserter: ", value=" ")
         # e_title.center()
@@ -397,11 +420,11 @@ class Game:
         play_button = th.make_button("Play", func=th.functions.quit_menu_func)
     
         varset = th.VarSet()
-        varset.add("tilesize", value=TILESIZE, text="Size of objects:", limits=(8, 20))
+        # varset.add("tilesize", value=TILESIZE, text="Size of objects:", limits=(10, 16))
         # varset.add("speed", value=PLAYER_SPEED, text="Speed:", limits=(10, 100))
         varset.add("ghost_speed", value=GHOST_SPEED, text="Ghosts speed:", limits=(10, 100))
-        varset.add("scatter_freq", value=10, text="Scatter mode frequency:", limits=(0, 15))
-        varset.add("volume", value=self.volume * 100, text="Volume:", limits=(0, 100))
+        varset.add("scatter_freq", value=self.scatter_frequency // 1000, text="Scatter mode frequency:", limits=(0, 30))
+        # varset.add("volume", value=self.volume * 100, text="Volume:", limits=(0, 100))
         # varset.add("login",value = LOGIN, text ="Login :")
         e_options = th.ParamSetterLauncher.make([varset], "Options", "Options")
         quit_button = th.make_button("Quit",func=th.functions.quit_func)
@@ -416,13 +439,31 @@ class Game:
         
         
         pg.display.flip()
-        self.tilesize = varset.get_value("tilesize")
+        # self.tilesize = varset.get_value("tilesize")
         # self.speed = varset.get_value("speed")
         self.GRIDWIDTH = WIDTH / self.tilesize
         self.GRIDHEIGHT = HEIGHT / self.tilesize
+        
         self.ghost_speed = varset.get_value("ghost_speed")
-        self.volume = varset.get_value("volume")/100
-        self.scatter_frequency = varset.get_value("volume") * 1000
+        
+        # if self.volume != (varset.get_value("volume")/100):
+        #     print(self.volume)
+        #     print(varset.get_value("volume")/100)
+        #     self.volume = (varset.get_value("volume")/100)
+        #     print(self.volume)
+        #     print(varset.get_value("volume")/100)
+        # self.intro.set_volume(self.volume) 
+        # self.eat_coin.set_volume(self.volume)
+        # self.intro.set_volume(self.volume)
+        # self.death_sound.set_volume(self.volume)
+        # self.eat_fruit_sound.set_volume(self.volume)
+        # self.eat_ghost.set_volume(self.volume)
+        self.scatter_frequency = varset.get_value("scatter_freq") * 1000
+        
+        # if self.tilesize < TILESIZE:
+        #     self.speed = 60 / self.tilesize * 10
+        #     self.ghost_speed =  60 / self.tilesize * 10 - 10  
+        
         # self.login = varset.get_value("login")
         # pg.display.flip()
         # self.wait_for_key()
@@ -438,7 +479,8 @@ class Game:
         if len(self.high_scores) == 0:
            self.draw_text("You set new record :" + str(self.score),30,YELLOW, 5 * self.tilesize, 15 * self.tilesize,FONT_NAME)
         elif int(self.score) - int(self.high_scores[0]) > 0:
-           self.draw_text("You set new record.Also it is better than previous on :" + str(int(self.score) - int(self.high_scores[0])) + " points",30,YELLOW, 5 * self.tilesize, 15 * self.tilesize,FONT_NAME)
+           self.draw_text("You set new record.",30,YELLOW, 5 * self.tilesize, 15 * self.tilesize,FONT_NAME)
+           self.draw_text("Also it is better than previous on :" + str(int(self.score) - int(self.high_scores[0])) + " points",30,YELLOW, 10 * self.tilesize, 20 * self.tilesize,FONT_NAME)
         else:
             self.draw_text("You was close.To be the best you nedd only " + str(int(self.high_scores[0]) - int(self.score)) + " points.",30,YELLOW, 5 * self.tilesize, 15 * self.tilesize,FONT_NAME)
             self.draw_text("Keep trying",30,YELLOW, 5 * self.tilesize, 20 * self.tilesize,FONT_NAME)     
@@ -447,6 +489,7 @@ class Game:
         self.free_nodes = []
         self.wait_for_key()
         self.show_start_screen()
+        self.score = 0
 
 
 
