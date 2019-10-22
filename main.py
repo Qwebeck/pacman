@@ -57,7 +57,7 @@ class Game:
         
 
     def load_data(self):
-        self.volume = 0.1
+        self.volume = 1
         self.game_folder = path.dirname(__file__)
         self.img_folder = path.join(self.game_folder, 'images')
         self.dead_anim = path.join(self.img_folder, 'dead_an')
@@ -76,7 +76,7 @@ class Game:
         self.eat_fruit_sound = pg.mixer.Sound(path.join(self.sound_folder,'pacman_eatfruit.wav'))
         self.eat_ghost = pg.mixer.Sound(path.join(self.sound_folder,'pacman_eatghost.wav'))  
         pg.mixer.music.load(path.join(self.sound_folder,'Airport-lounge-music-for-airports.mp3'))  
-        pg.mixer.music.set_volume(0.05)
+        pg.mixer.music.set_volume(self.volume)
         self.intro.set_volume(self.volume) 
         self.eat_coin.set_volume(self.volume)
         self.intro.set_volume(self.volume)
