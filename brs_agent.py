@@ -7,6 +7,12 @@ def maze_transform(maze,map):
             elif tile =='G':
                 el_row.append('G')
             #     # pass# print("Ghost :",(row,col))
+            elif tile =='D':
+                el_row.append('D')
+            elif tile =='R': #vertical top
+                el_row.append('R')
+            elif tile =='U': #vertical bot
+                el_row.append('U')
             elif tile =='p':
                 #pinky
                 el_row.append('p')
@@ -57,35 +63,71 @@ def maze_transform(maze,map):
  
 
 
-
-def breadth_search(maze,start,end):
-    
-    wall_arr=['C','V','N','B','F','J','M']
-    frontier = [start]
-    visited = {start:None}
-    while frontier:
-        # print(frontier)
-        current = frontier[0]
-        frontier.pop(0)
-        for new_position in [(0, -1), (0, 1), (-1, 0),(1, 0)]:
-            new_node_r = new_position[0] + current[0]
-            new_node_c = new_position[1] + current[1]
-            
-            if len(maze)>new_node_r >= 0 and len(maze[0])>new_node_c >= 0 and (new_node_r,new_node_c) not in visited and maze[new_node_r][new_node_c] != 1 and maze[new_node_r][new_node_c] != 'O' and maze[new_node_r][new_node_c] not in wall_arr: 
-                new_node = new_position[0] + current[0],new_position[1] + current[1]
-                # print(current,"------------>",new_node)
-                visited[new_node] = current
-                frontier.append(new_node)
-                if new_node == end :
-                    break
-    # print(visited)
-    current = end
-    path = []
-    while current != None:
-            path.append(current)
-            current = visited[current]
+def ghost_house_area(maze , ghost_house):
+    ghost_house_area = [ghost_house]
+    index = 0
+    output = [ghost_house]
+    wall_arr=['C','V','N','B','F','J','M','O','D','R','U',1]
+    neingh = [(0, -1), (0, 1), (-1, 0),(1, 0)]
+    node = maze[ghost_house_area[0][0]][ghost_house_area[0][1]]
+    while index < len(maze[0]) * 2:
+            # print(frontier)
+            # print(ghost_house_area)
+            current = ghost_house_area[0]
+            ghost_house_area.pop(0)
+            for new_position in [(0, -1), (0, 1), (-1, 0),(1, 0)]:
+                new_node_r = new_position[0] + current[0]
+                new_node_c = new_position[1] + current[1]
+                if (new_node_r,new_node_c) not in ghost_house_area and  maze[new_node_r][new_node_c] not in wall_arr: 
+                    new_node = new_position[0] + current[0],new_position[1] + current[1]
+                    # print(current,"------------>",new_node)
+                    ghost_house_area.append(new_node)         
+                output.append(new_node)
+                index += 1
        
-    return path[::-1]
+    output.append(ghost_house)
+    return output
+        
+
+def breadth_search(maze,start,end, runnig = None , emergency = None):
+    try:
+        print("Called")
+        wall_arr=['C','V','N','B','F','J','M','R','U',1 ,'O']
+        if runnig:
+            wall_arr.append('P')
+        if emergency:
+           wall_arr=['C','V','N','B','J','M','R','U','O']
+        frontier = [start]
+        visited = {start:None}
+        while frontier:
+            # print(frontier)
+            current = frontier[0]
+            frontier.pop(0)
+            for new_position in [(0, -1), (0, 1), (-1, 0),(1, 0)]:
+                new_node_r = new_position[0] + current[0]
+                new_node_c = new_position[1] + current[1]
+                
+                if len(maze)>new_node_r >= 0 and len(maze[0])>new_node_c >= 0 and (new_node_r,new_node_c) not in visited and maze[new_node_r][new_node_c] not in wall_arr: 
+                    new_node = new_position[0] + current[0],new_position[1] + current[1]
+                    # print(current,"------------>",new_node)
+                    visited[new_node] = current
+                    frontier.append(new_node)
+                    if new_node == end :
+                        break
+        # print(visited)
+        current = end
+        path = []
+        if runnig:
+            wall_arr.pop()
+        while current != None:
+                path.append(current)
+                current = visited[current]
+        
+        return path[::-1]
+    except KeyError:
+        print("Error")
+        return 0 
+        #problem
 
 
 
