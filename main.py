@@ -1,12 +1,31 @@
-import pygame as pg
 import sys
+import pip
+import subprocess 
 from os import path
 from settings import *
 from sprites import *
-import thorpy as th
 from brs_agent import *
-import pytmx
+
 import random
+
+
+try:
+    th = __import__('thorpy')
+except ImportError:
+    subprocess.check_call("pip install thorpy")
+    th = __import__('thorpy')
+try:
+    pg = __import__('pygame')
+except ImportError:
+    subprocess.check_call("pip install pygame")
+    pg = __import__('pygame')
+try:
+    pytmx = __import__('pytmx')
+except ImportError:
+    subprocess.check_call("pip install pytmx")
+    pytmx = __import__('pytmx')
+
+
 
 random.seed()
 
@@ -288,9 +307,9 @@ class Game:
             pg.draw.line(self.screen, LIGHTGREY, (0, y), (WIDTH, y))
 
     def drawing_of_changable(self):
-        print("Hell mode pellet",self.unlucky_pellet)
-        print("Hell mode state",self.hell_mode)
-        print("Picked pellets ", self.picked_pellets_number)
+        #print("Hell mode pellet",self.unlucky_pellet)
+        #print("Hell mode state",self.hell_mode)
+        #print("Picked pellets ", self.picked_pellets_number)
         if self.minutes < 10:
             minutes = "0" + str(self.minutes)
         else:
